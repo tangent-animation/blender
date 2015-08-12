@@ -940,6 +940,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
 class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
     bl_label = "Ambient Occlusion"
     bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

@@ -22,7 +22,7 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathR
 {
 	int num_samples = kernel_data.integrator.ao_samples;
 	float num_samples_inv = 1.0f/num_samples;
-	float ao_factor = kernel_data.background.ao_factor;
+	float ao_factor = kernel_data.background.ao_factor * ccl_fetch(sd, ao_factor);;
 	float3 ao_N;
 	float3 ao_bsdf = shader_bsdf_ao(kg, sd, ao_factor, &ao_N);
 	float3 ao_alpha = shader_bsdf_alpha(kg, sd);

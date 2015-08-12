@@ -663,6 +663,21 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 items=enum_volume_interpolation,
                 default='LINEAR',
                 )
+                
+        cls.ao_factor = FloatProperty(
+                name="Factor",
+                description="",
+                min=0.0, max=1.0,
+                default=1.0,
+                )
+
+        cls.shadow_factor = FloatProperty(
+                name="Shadow Factor",
+                description="",
+                min=0.0, max=1.0,
+                default=1.0,
+                )
+
 
         cls.use_uniform_alpha = BoolProperty(
                 name="Use Uniform Alpha",
