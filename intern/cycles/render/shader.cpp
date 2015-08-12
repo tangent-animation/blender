@@ -144,6 +144,9 @@ Shader::Shader()
 	volume_sampling_method = VOLUME_SAMPLING_DISTANCE;
 	volume_interpolation_method = VOLUME_INTERPOLATION_LINEAR;
 
+	ao_factor = 1.0;
+	shadow_factor = 1.0;
+
 	has_surface = false;
 	has_surface_transparent = false;
 	has_surface_emission = false;
@@ -334,7 +337,7 @@ void ShaderManager::device_update_common(Device *device,
 	if(scene->shaders.size() == 0)
 		return;
 
-	uint shader_flag_size = scene->shaders.size()*4;
+	uint shader_flag_size = scene->shaders.size()*8;
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
 	bool has_volumes = false;
@@ -376,12 +379,20 @@ void ShaderManager::device_update_common(Device *device,
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
 
+		shader_flag[i++] = __float_as_uint(shader->ao_factor);
+		shader_flag[i++] = __float_as_uint(shader->shadow_factor);
+
 		/* shader with bump mapping */
 		if(shader->graph_bump)
 			flag |= SD_HAS_BSSRDF_BUMP;
 
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
+
+		shader_flag[i++] = __float_as_uint(shader->ao_factor);
+		shader_flag[i++] = __float_as_uint(shader->shadow_factor);
+
+
 	}
 
 	device->tex_alloc("__shader_flag", dscene->shader_flag);

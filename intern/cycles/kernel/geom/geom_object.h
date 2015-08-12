@@ -296,7 +296,7 @@ ccl_device_inline void object_motion_info(KernelGlobals *kg, int object, int *nu
 
 ccl_device int shader_pass_id(KernelGlobals *kg, const ShaderData *sd)
 {
-	return kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*2 + 1);
+	return kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4 + 1);
 }
 
 /* Particle data from which object was instanced */

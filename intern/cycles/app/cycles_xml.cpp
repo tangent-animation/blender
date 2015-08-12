@@ -843,6 +843,10 @@ static void xml_read_shader(const XMLReadState& state, pugi::xml_node node)
 	else if(xml_equal_string(node, "volume_sampling_method", "multiple_importance"))
 		shader->volume_sampling_method = VOLUME_SAMPLING_MULTIPLE_IMPORTANCE;
 
+	/* AO and Shadow Mixing factors */
+	xml_read_float(&shader->ao_factor, node, "ao_factor");
+	xml_read_float(&shader->shadow_factor, node, "shadow_factor");
+
 	xml_read_shader_graph(state, shader, node);
 	state.scene->shaders.push_back(shader);
 }

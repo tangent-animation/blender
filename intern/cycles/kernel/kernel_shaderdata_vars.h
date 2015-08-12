@@ -34,6 +34,10 @@ SD_VAR(int, shader)
 /* booleans describing shader, see ShaderDataFlag */
 SD_VAR(int, flag)
 
+/* AO and Shadow mix factors */
+SD_VAR(float, ao_factor)
+SD_VAR(float, shadow_factor)
+
 /* primitive id if there is one, ~0 otherwise */
 SD_VAR(int, prim)
 

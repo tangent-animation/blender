@@ -951,6 +951,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
 class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
     bl_label = "Ambient Occlusion"
     bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1170,6 +1171,17 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col.label("Viewport Specular:")
         col.prop(mat, "specular_color", text="")
         col.prop(mat, "specular_hardness", text="Hardness")
+
+        layout.separator()
+        split = layout.split()
+
+        col = split.column(align=True)
+        col.label(text="Ambient Occlusion:")
+        col.prop(cmat, "ao_factor", text="Factor")
+
+        col = split.column(align=True)
+        col.label(text="Shadow contributions:")
+        col.prop(cmat, "shadow_factor", text="Shadows")
 
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
