@@ -76,6 +76,9 @@ ccl_device void kernel_data_init(
         ccl_global int *direct_ao_factor_sd,
         ccl_global int *direct_ao_factor_sd_DL_shadow,
 
+        ccl_global int *direct_ao_mix_sd,
+        ccl_global int *direct_ao_mix_sd_DL_shadow,
+
         ccl_global int *shadow_factor_sd,
         ccl_global int *shadow_factor_sd_DL_shadow,
 
@@ -212,11 +215,11 @@ ccl_device void kernel_data_init(
 	sd->flag = flag_sd;
 	sd_DL_shadow->flag = flag_sd_DL_shadow;
 
-	sd->ao_factor = direct_ao_factor_sd;
-	sd_DL_shadow->ao_factor = direct_ao_factor_sd_DL_shadow;
+	sd->ao_alpha = direct_ao_alpha_sd;
+	sd_DL_shadow->ao_alpha = direct_ao_alpha_sd_DL_shadow;
 
-	sd->shadow_factor = shadow_factor_sd;
-	sd_DL_shadow->shadow_factor = shadow_factor_sd_DL_shadow;
+	sd->shadow_alpha = shadow_alpha_sd;
+	sd_DL_shadow->shadow_alpha = shadow_alpha_sd_DL_shadow;
 
 	sd->prim = prim_sd;
 	sd_DL_shadow->prim = prim_sd_DL_shadow;

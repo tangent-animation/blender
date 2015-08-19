@@ -676,21 +676,26 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 items=enum_volume_interpolation,
                 default='LINEAR',
                 )
-                
-        cls.ao_factor = FloatProperty(
-                name="Factor",
+
+        cls.use_uniform_alpha = BoolProperty(
+                name="Use Uniform Alpha",
+                description="Assumes a constant alpha when tracing instead of evaluating shaders. Requires transparent shadows turned on",
+                default=False,
+                )
+
+        cls.ao_alpha = FloatProperty(
+                name="AO Alpha",
                 description="",
                 min=0.0, max=1.0,
                 default=1.0,
                 )
 
-        cls.shadow_factor = FloatProperty(
-                name="Shadow Factor",
+        cls.shadow_alpha = FloatProperty(
+                name="Shadow Aplha",
                 description="",
                 min=0.0, max=1.0,
                 default=1.0,
                 )
-
 
     @classmethod
     def unregister(cls):

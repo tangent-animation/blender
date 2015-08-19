@@ -35,8 +35,8 @@ SD_VAR(int, shader)
 SD_VAR(int, flag)
 
 /* AO and Shadow mix factors */
-SD_VAR(float, ao_factor)
-SD_VAR(float, shadow_factor)
+SD_VAR(float, ao_alpha)
+SD_VAR(float, shadow_alpha)
 
 /* primitive id if there is one, ~0 otherwise */
 SD_VAR(int, prim)

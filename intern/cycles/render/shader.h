@@ -94,8 +94,9 @@ public:
 	int volume_interpolation_method;
 
 	/* ao and shadow mix factors */
-	float ao_factor;
-	float shadow_factor;
+	bool use_uniform_alpha;
+	float ao_alpha;
+	float shadow_alpha;
 
 	/* synchronization */
 	bool need_update;

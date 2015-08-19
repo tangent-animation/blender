@@ -1176,12 +1176,10 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column(align=True)
-        col.label(text="Ambient Occlusion:")
-        col.prop(cmat, "ao_factor", text="Factor")
-
-        col = split.column(align=True)
-        col.label(text="Shadow contributions:")
-        col.prop(cmat, "shadow_factor", text="Shadows")
+        col.label(text="Uniform Alpha:")
+        col.prop(cmat, "use_uniform_alpha")
+        col.prop(cmat, "ao_alpha", text="AO Alpha")
+        col.prop(cmat, "shadow_alpha", text="Shadow Alpha")
 
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):

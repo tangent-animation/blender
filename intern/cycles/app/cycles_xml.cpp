@@ -844,8 +844,9 @@ static void xml_read_shader(const XMLReadState& state, pugi::xml_node node)
 		shader->volume_sampling_method = VOLUME_SAMPLING_MULTIPLE_IMPORTANCE;
 
 	/* AO and Shadow Mixing factors */
-	xml_read_float(&shader->ao_factor, node, "ao_factor");
-	xml_read_float(&shader->shadow_factor, node, "shadow_factor");
+	xml_read_bool(&shader->use_uniform_alpha, node, "use_uniform_alpha");
+	xml_read_float(&shader->ao_alpha, node, "ao_alpha");
+	xml_read_float(&shader->shadow_alpha, node, "shadow_alpha");
 
 	xml_read_shader_graph(state, shader, node);
 	state.scene->shaders.push_back(shader);

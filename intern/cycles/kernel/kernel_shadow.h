@@ -111,8 +111,12 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 				/* attenuation from transparent surface */
 				if(!(sd.flag & SD_HAS_ONLY_VOLUME)) {
-					shader_eval_surface(kg, &sd, 0.0f, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
-					throughput *= shader_bsdf_transparency(kg, &sd);
+					if (sd.flag & SD_USE_UNIFORM_ALPHA) {
+						throughput *= (1.0f-sd.shadow_alpha);
+                    } else {
+						shader_eval_surface(kg, &sd, 0.0f, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
+						throughput *= shader_bsdf_transparency(kg, &sd);
+                    }
 				}
 
 				/* stop if all light is blocked */
@@ -120,6 +124,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 					/* free dynamic storage */
 					if(hits != hits_stack)
 						free(hits);
+
 					return true;
 				}
 
@@ -146,12 +151,14 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 			if(hits != hits_stack)
 				free(hits);
+
 			return is_zero(throughput);
 		}
 
 		/* free dynamic storage */
 		if(hits != hits_stack)
 			free(hits);
+
 	}
 	else {
 		Intersection isect;
@@ -161,7 +168,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 #ifdef __VOLUME__
 	if(!blocked && state->volume_stack[0].shader != SHADER_NONE) {
 		/* apply attenuation from current volume shader */
-		kernel_volume_shadow(kg, state, ray, shadow);
+//		kernel_volume_shadow(kg, state, ray, shadow);
 	}
 #endif
 
@@ -257,8 +264,12 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathStat
 
 				/* attenuation from transparent surface */
 				if(!(ccl_fetch(sd, flag) & SD_HAS_ONLY_VOLUME)) {
-					shader_eval_surface(kg, sd, 0.0f, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
-					throughput *= shader_bsdf_transparency(kg, sd);
+					if (ccl_fetch(sd, flag) & SD_USE_UNIFORM_ALPHA) {
+						throughput *= (1.0f - ccl_fetch(sd, shadow_alpha));
+                    } else {
+						shader_eval_surface(kg, sd, 0.0f, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
+						throughput *= shader_bsdf_transparency(kg, sd);
+                    }
 				}
 
 				if(is_zero(throughput))

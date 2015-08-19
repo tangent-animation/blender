@@ -111,7 +111,8 @@ ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	ccl_fetch(sd, I) = -ray->D;
 
 	ccl_fetch(sd, flag) |= kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4);
-	ccl_fetch(sd, ao_factor) = __uint_as_float(kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4+2));
+	ccl_fetch(sd, ao_alpha) = __uint_as_float(kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4+2));
+	ccl_fetch(sd, shadow_alpha) = __uint_as_float(kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4+3));
 
 #ifdef __INSTANCING__
 	if(isect->object != OBJECT_NONE) {
@@ -188,7 +189,8 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 	}
 
 	sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*4);
-	sd->ao_factor = __uint_as_float(kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*4+2));
+	sd->ao_alpha = __uint_as_float(kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*4+2));
+	sd->shadow_alpha = __uint_as_float(kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*4+3));
 
 #ifdef __INSTANCING__
 	if(isect->object != OBJECT_NONE) {
@@ -268,7 +270,8 @@ ccl_device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 #endif
 
 	ccl_fetch(sd, flag) = kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4);
-	ccl_fetch(sd, ao_factor) = __uint_as_float(kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4+2));
+	ccl_fetch(sd, ao_alpha) = __uint_as_float(kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4+2));
+	ccl_fetch(sd, shadow_alpha) = __uint_as_float(kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4+3));
 
 	if(ccl_fetch(sd, object) != OBJECT_NONE) {
 		ccl_fetch(sd, flag) |= kernel_tex_fetch(__object_flag, ccl_fetch(sd, object));
@@ -365,7 +368,8 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 	ccl_fetch(sd, I) = -ray->D;
 	ccl_fetch(sd, shader) = kernel_data.background.surface_shader;
 	ccl_fetch(sd, flag) = kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4);
-	ccl_fetch(sd, ao_factor) = __uint_as_float(kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4+2));
+	ccl_fetch(sd, ao_alpha) = __uint_as_float(kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4+2));
+	ccl_fetch(sd, shadow_alpha) = __uint_as_float(kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*4+3));
 #ifdef __OBJECT_MOTION__
 	ccl_fetch(sd, time) = ray->time;
 #endif
@@ -972,7 +976,8 @@ ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 
 		sd->flag &= ~(SD_SHADER_FLAGS|SD_OBJECT_FLAGS);
 		sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*4);
-		sd->ao_factor = __uint_as_float(kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*4+2));
+		sd->ao_alpha = __uint_as_float(kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*4+2));
+		sd->shadow_alpha = __uint_as_float(kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*4+3));
 
 		if(sd->object != OBJECT_NONE) {
 			sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
