@@ -206,6 +206,12 @@ ccl_device void kernel_data_init(
 	sd->flag = flag_sd;
 	sd_DL_shadow->flag = flag_sd_DL_shadow;
 
+	sd->ao_alpha = direct_ao_alpha_sd;
+	sd_DL_shadow->ao_alpha = direct_ao_alpha_sd_DL_shadow;
+
+	sd->shadow_alpha = shadow_alpha_sd;
+	sd_DL_shadow->shadow_alpha = shadow_alpha_sd_DL_shadow;
+
 	sd->prim = prim_sd;
 	sd_DL_shadow->prim = prim_sd_DL_shadow;
 
