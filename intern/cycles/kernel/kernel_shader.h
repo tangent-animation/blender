@@ -1040,7 +1040,7 @@ ccl_device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect
 #endif
 	int flag = kernel_tex_fetch(__shader_flag, (shader & SHADER_MASK)*2);
 
-	return (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
+	return (flag & (SD_HAS_TRANSPARENT_SHADOW | SD_USE_UNIFORM_ALPHA)) != 0;
 }
 #endif
 
