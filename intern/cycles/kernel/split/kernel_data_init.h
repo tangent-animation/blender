@@ -79,9 +79,6 @@ ccl_device void kernel_data_init(
         ccl_global int *direct_ao_mix_sd,
         ccl_global int *direct_ao_mix_sd_DL_shadow,
 
-        ccl_global int *shadow_factor_sd,
-        ccl_global int *shadow_factor_sd_DL_shadow,
-
         ccl_global int *prim_sd,
         ccl_global int *prim_sd_DL_shadow,
 
