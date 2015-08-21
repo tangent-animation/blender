@@ -211,13 +211,12 @@ void OSLShaderManager::shading_system_init()
 			"shadow",			/* PATH_RAY_SHADOW_OPAQUE */
 			"shadow",			/* PATH_RAY_SHADOW_TRANSPARENT */
 
-			"__unused__",
-			"__unused__",
-			"diffuse_ancestor",	/* PATH_RAY_DIFFUSE_ANCESTOR */
-			"__unused__",
-			"__unused__",
-			"__unused__",		/* PATH_RAY_SINGLE_PASS_DONE */
+			"__unused__",		/* PATH_RAY_CURVE */
 			"volume_scatter",	/* PATH_RAY_VOLUME_SCATTER */
+			"ao",				/* PATH_RAY_AO */
+			"__unused__",		/* PATH_RAY_MIS_SKIP */
+			"diffuse_ancestor",	/* PATH_RAY_DIFFUSE_ANCESTOR */
+			"__unused__",		/* PATH_RAY_SINGLE_PASS_DONE */
 		};
 
 		const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);

@@ -112,7 +112,10 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 				/* attenuation from transparent surface */
 				if(!(sd.flag & SD_HAS_ONLY_VOLUME)) {
 					if (sd.flag & SD_USE_UNIFORM_ALPHA) {
-						throughput *= (1.0f-sd.shadow_alpha);
+                    	if (state->flag & PATH_RAY_AO)
+							throughput *= (1.0f-sd.ao_alpha);
+                        else
+							throughput *= (1.0f-sd.shadow_alpha);
                     } else {
 						shader_eval_surface(kg, &sd, 0.0f, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
 						throughput *= shader_bsdf_transparency(kg, &sd);
@@ -265,7 +268,10 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathStat
 				/* attenuation from transparent surface */
 				if(!(ccl_fetch(sd, flag) & SD_HAS_ONLY_VOLUME)) {
 					if (ccl_fetch(sd, flag) & SD_USE_UNIFORM_ALPHA) {
-						throughput *= (1.0f - ccl_fetch(sd, shadow_alpha));
+                    	if (state->flag & PATH_RAY_AO)
+							throughput *= (1.0f - ccl_fetch(sd, ao_alpha));
+                        else
+							throughput *= (1.0f - ccl_fetch(sd, shadow_alpha));
                     } else {
 						shader_eval_surface(kg, sd, 0.0f, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
 						throughput *= shader_bsdf_transparency(kg, sd);
