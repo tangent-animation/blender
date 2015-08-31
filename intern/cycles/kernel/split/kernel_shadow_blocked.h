@@ -87,6 +87,7 @@ ccl_device void kernel_shadow_blocked(
 		                                        state,
 		                                        light_ray_global,
 		                                        &shadow,
+												sd_shadow,
 		                                        sd_shadow,
 		                                        isect_global));
 

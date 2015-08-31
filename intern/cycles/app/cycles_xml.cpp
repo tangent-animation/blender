@@ -845,6 +845,7 @@ static void xml_read_shader(const XMLReadState& state, pugi::xml_node node)
 
 	/* AO and Shadow Mixing factors */
 	xml_read_bool(&shader->use_uniform_alpha, node, "use_uniform_alpha");
+	xml_read_bool(&shader->self_only, node, "self_only");
 	xml_read_float(&shader->ao_alpha, node, "ao_alpha");
 	xml_read_float(&shader->shadow_alpha, node, "shadow_alpha");
 

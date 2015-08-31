@@ -51,7 +51,7 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathR
 
         	state->flag |= PATH_RAY_AO;
 
-			if(!shadow_blocked(kg, state, &light_ray, &ao_shadow)) {
+			if(!shadow_blocked(kg, state, &light_ray, &ao_shadow, sd)) {
 				path_radiance_accum_ao(L, throughput*num_samples_inv, ao_alpha, ao_bsdf, ao_shadow, state->bounce);
             }
 

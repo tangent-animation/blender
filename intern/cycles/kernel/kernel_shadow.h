@@ -41,7 +41,7 @@ CCL_NAMESPACE_BEGIN
 
 #define STACK_MAX_HITS 64
 
-ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow)
+ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow, ShaderData *source_sd)
 {
 	*shadow = make_float3(1.0f, 1.0f, 1.0f);
 
@@ -111,7 +111,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 				/* attenuation from transparent surface */
 				if(!(sd.flag & SD_HAS_ONLY_VOLUME)) {
-					if (sd.flag & SD_USE_UNIFORM_ALPHA) {
+					if ( (sd.flag & SD_USE_UNIFORM_ALPHA) && (!(sd.flag & SD_USE_UNIFORM_ALPHA_SELF_ONLY) || (sd.shader == source_sd->shader)) ) {
                     	if (state->flag & PATH_RAY_AO)
 							throughput *= (1.0f-sd.ao_alpha);
                         else
@@ -190,7 +190,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
  * potentially transparent, and only in that case start marching. this gives
  * one extra ray cast for the cases were we do want transparency. */
 
-ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathState *state, ccl_addr_space Ray *ray_input, float3 *shadow
+ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathState *state, ccl_addr_space Ray *ray_input, float3 *shadow, ShaderData *source_sd
 #ifdef __SPLIT_KERNEL__
                                       , ShaderData *sd_mem, Intersection *isect_mem
 #endif
@@ -267,7 +267,11 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathStat
 
 				/* attenuation from transparent surface */
 				if(!(ccl_fetch(sd, flag) & SD_HAS_ONLY_VOLUME)) {
-					if (ccl_fetch(sd, flag) & SD_USE_UNIFORM_ALPHA) {
+
+					//if ( (sd.flag & SD_USE_UNIFORM_ALPHA) && (!(sd.flag & SD_USE_UNIFORM_ALPHA_SELF_ONLY) || (sd.shader == source_sd->shader)) ) {
+
+
+					if ( (ccl_fetch(sd, flag) & SD_USE_UNIFORM_ALPHA) && (!(ccl_fetch(sd, flag) & SD_USE_UNIFORM_ALPHA_SELF_ONLY) || (ccl_fetch(sd, shader) == ccl_fetch(source_sd, shader)) ) {
                     	if (state->flag & PATH_RAY_AO)
 							throughput *= (1.0f - ccl_fetch(sd, ao_alpha));
                         else

@@ -683,6 +683,12 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 default=False,
                 )
 
+        cls.self_only = BoolProperty(
+                name="Self Only",
+                description="Uses constant alphas only when self shadowing and self ao",
+                default=True,
+                )
+
         cls.ao_alpha = FloatProperty(
                 name="AO Alpha",
                 description="",

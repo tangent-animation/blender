@@ -95,6 +95,7 @@ public:
 
 	/* ao and shadow mix factors */
 	bool use_uniform_alpha;
+    bool self_only;
 	float ao_alpha;
 	float shadow_alpha;
 

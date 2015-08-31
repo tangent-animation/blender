@@ -1178,6 +1178,7 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col = split.column(align=True)
         col.label(text="Uniform Alpha:")
         col.prop(cmat, "use_uniform_alpha")
+        col.prop(cmat, "self_only")
         col.prop(cmat, "ao_alpha", text="AO Alpha")
         col.prop(cmat, "shadow_alpha", text="Shadow Alpha")
 

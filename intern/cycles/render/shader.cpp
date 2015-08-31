@@ -145,6 +145,7 @@ Shader::Shader()
 	volume_interpolation_method = VOLUME_INTERPOLATION_LINEAR;
 
 	use_uniform_alpha = false;
+    self_only = true;
 	ao_alpha = 1.0;
 	shadow_alpha = 1.0;
 
@@ -377,6 +378,8 @@ void ShaderManager::device_update_common(Device *device,
 			flag |= SD_HAS_BUMP;
         if(shader->use_uniform_alpha)
         	flag |= SD_USE_UNIFORM_ALPHA;
+        if(shader->self_only)
+        	flag |= SD_USE_UNIFORM_ALPHA_SELF_ONLY;
 
 		/* regular shader */
 		shader_flag[i++] = flag;
