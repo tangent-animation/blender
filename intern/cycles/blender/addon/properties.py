@@ -664,6 +664,32 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 default='LINEAR',
                 )
 
+        cls.use_uniform_alpha = BoolProperty(
+                name="Use Uniform Alpha",
+                description="Assumes a constant alpha when tracing instead of evaluating shaders. Requires transparent shadows turned on",
+                default=False,
+                )
+
+        cls.self_only = BoolProperty(
+                name="Self Only",
+                description="Uses constant alphas only when self shadowing and self ao",
+                default=True,
+                )
+
+        cls.ao_alpha = FloatProperty(
+                name="AO Alpha",
+                description="",
+                min=0.0, max=1.0,
+                default=1.0,
+                )
+
+        cls.shadow_alpha = FloatProperty(
+                name="Shadow Aplha",
+                description="",
+                min=0.0, max=1.0,
+                default=1.0,
+                )
+
     @classmethod
     def unregister(cls):
         del bpy.types.Material.cycles

@@ -1068,6 +1068,11 @@ void BlenderSync::sync_materials(bool update_all)
 			shader->volume_sampling_method = (VolumeSampling)RNA_enum_get(&cmat, "volume_sampling");
 			shader->volume_interpolation_method = (VolumeInterpolation)RNA_enum_get(&cmat, "volume_interpolation");
 
+			shader->use_uniform_alpha = get_boolean(cmat, "use_uniform_alpha");
+			shader->self_only = get_boolean(cmat, "self_only");
+			shader->ao_alpha = get_float(cmat, "ao_alpha");
+			shader->shadow_alpha = get_float(cmat, "shadow_alpha");
+
 			shader->set_graph(graph);
 			shader->tag_update(scene);
 		}

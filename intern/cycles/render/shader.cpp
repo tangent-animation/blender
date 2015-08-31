@@ -144,6 +144,11 @@ Shader::Shader()
 	volume_sampling_method = VOLUME_SAMPLING_DISTANCE;
 	volume_interpolation_method = VOLUME_INTERPOLATION_LINEAR;
 
+	use_uniform_alpha = false;
+    self_only = true;
+	ao_alpha = 1.0;
+	shadow_alpha = 1.0;
+
 	has_surface = false;
 	has_surface_transparent = false;
 	has_surface_emission = false;
@@ -334,7 +339,7 @@ void ShaderManager::device_update_common(Device *device,
 	if(scene->shaders.size() == 0)
 		return;
 
-	uint shader_flag_size = scene->shaders.size()*4;
+	uint shader_flag_size = scene->shaders.size()*8;
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
 	bool has_volumes = false;
@@ -371,10 +376,17 @@ void ShaderManager::device_update_common(Device *device,
 			flag |= SD_VOLUME_CUBIC;
 		if(shader->graph_bump)
 			flag |= SD_HAS_BUMP;
+        if(shader->use_uniform_alpha)
+        	flag |= SD_USE_UNIFORM_ALPHA;
+        if(shader->self_only)
+        	flag |= SD_USE_UNIFORM_ALPHA_SELF_ONLY;
 
 		/* regular shader */
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
+
+		shader_flag[i++] = __float_as_uint(shader->ao_alpha);
+		shader_flag[i++] = __float_as_uint(shader->shadow_alpha);
 
 		/* shader with bump mapping */
 		if(shader->graph_bump)
@@ -382,6 +394,9 @@ void ShaderManager::device_update_common(Device *device,
 
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
+
+		shader_flag[i++] = __float_as_uint(shader->ao_alpha);
+		shader_flag[i++] = __float_as_uint(shader->shadow_alpha);
 	}
 
 	device->tex_alloc("__shader_flag", dscene->shader_flag);

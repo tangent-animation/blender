@@ -1159,6 +1159,16 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col.prop(mat, "specular_color", text="")
         col.prop(mat, "specular_hardness", text="Hardness")
 
+        layout.separator()
+        split = layout.split()
+
+        col = split.column(align=True)
+        col.label(text="Uniform Alpha:")
+        col.prop(cmat, "use_uniform_alpha")
+        col.prop(cmat, "self_only")
+        col.prop(cmat, "ao_alpha", text="AO Alpha")
+        col.prop(cmat, "shadow_alpha", text="Shadow Alpha")
+
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
     bl_label = ""

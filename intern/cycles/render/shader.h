@@ -93,6 +93,12 @@ public:
 	VolumeSampling volume_sampling_method;
 	int volume_interpolation_method;
 
+	/* ao and shadow mix factors */
+	bool use_uniform_alpha;
+    bool self_only;
+	float ao_alpha;
+	float shadow_alpha;
+
 	/* synchronization */
 	bool need_update;
 	bool need_update_attributes;
