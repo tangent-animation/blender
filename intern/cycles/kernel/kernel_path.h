@@ -229,7 +229,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 			float bsdf_u, bsdf_v;
 			path_state_rng_2D(kg, rng, &state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
 
-			float ao_factor = kernel_data.background.ao_factor * sd.ao_factor;
+			float ao_factor = kernel_data.background.ao_factor;
 			float3 ao_N;
 			float3 ao_bsdf = shader_bsdf_ao(kg, &sd, ao_factor, &ao_N);
 			float3 ao_D;
@@ -302,7 +302,7 @@ ccl_device void kernel_path_ao(KernelGlobals *kg, ShaderData *sd, PathRadiance *
 
 	path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
 
-	float ao_factor = kernel_data.background.ao_factor * ccl_fetch(sd, ao_factor);
+	float ao_factor = kernel_data.background.ao_factor;
 	float3 ao_N;
 	float3 ao_bsdf = shader_bsdf_ao(kg, sd, ao_factor, &ao_N);
 	float3 ao_D;
