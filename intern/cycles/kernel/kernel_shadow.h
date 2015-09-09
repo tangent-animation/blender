@@ -264,10 +264,6 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathStat
 
 				/* attenuation from transparent surface */
 				if(!(ccl_fetch(sd, flag) & SD_HAS_ONLY_VOLUME)) {
-
-					//if ( (sd.flag & SD_USE_UNIFORM_ALPHA) && (!(sd.flag & SD_USE_UNIFORM_ALPHA_SELF_ONLY) || (sd.shader == source_sd->shader)) ) {
-
-
 					if ( (ccl_fetch(sd, flag) & SD_USE_UNIFORM_ALPHA) && (!(ccl_fetch(sd, flag) & SD_USE_UNIFORM_ALPHA_SELF_ONLY) || (ccl_fetch(sd, shader) == ccl_fetch(source_sd, shader)) ) {
                     	if (state->flag & PATH_RAY_AO)
 							throughput *= (1.0f - ccl_fetch(sd, ao_alpha));
