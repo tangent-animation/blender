@@ -540,7 +540,7 @@ void BlenderSync::sync_light_linking()
             else            ++exclusive_bit_index;
 
             if (exclusive_bit_index >= 32 || exclusive_bit_index >= 24) {
-                //TODO: Error
+                break;
             }
 
         }
