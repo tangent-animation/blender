@@ -32,7 +32,8 @@ enum ObjectTransform {
 	OBJECT_INVERSE_TRANSFORM = 4,
 	OBJECT_TRANSFORM_MOTION_POST = 4,
 	OBJECT_PROPERTIES = 8,
-	OBJECT_DUPLI = 9
+	OBJECT_DUPLI = 9,
+	OBJECT_LIGHT_LINKING = 11
 };
 
 enum ObjectVectorTransform {
@@ -212,6 +213,18 @@ ccl_device_inline float object_surface_area(KernelGlobals *kg, int object)
 	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
 	float4 f = kernel_tex_fetch(__objects, offset);
 	return f.x;
+}
+
+/* Light Linking bitmask of object */
+
+ccl_device_inline unsigned int object_light_linking(KernelGlobals *kg, int object)
+{
+	if(object == OBJECT_NONE)
+		return 0;
+
+	int offset = object*OBJECT_SIZE + OBJECT_LIGHT_LINKING;
+	float4 f = kernel_tex_fetch(__objects, offset);
+	return __float_as_uint(f.x);
 }
 
 /* Pass ID number of object */

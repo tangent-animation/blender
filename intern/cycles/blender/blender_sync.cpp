@@ -158,6 +158,7 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, void *
 
 	sync_objects(b_v3d);
 	sync_motion(b_v3d, b_override, python_thread_state);
+    sync_light_linking();
 
 	mesh_synced.clear();
 }

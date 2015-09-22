@@ -39,6 +39,14 @@
 
 struct Object;
 
+/* group->light_linking */
+typedef enum GroupLightLinking {
+	GP_LIGHT_LINK_NONE	= 0,
+	GP_LIGHT_LINK_INCLUSIVE	= 1,
+	GP_LIGHT_LINK_EXCLUSIVE	= 2
+} GroupLightLinking;
+
+
 typedef struct GroupObject {
 	struct GroupObject *next, *prev;
 	struct Object *ob;
@@ -58,6 +66,8 @@ typedef struct Group {
 	 * on the last used scene */
 	unsigned int layer;
 	float dupli_ofs[3];
+    unsigned int light_linking;
+	char pad[4];
 } Group;
 
 #endif  /* __DNA_GROUP_TYPES_H__ */

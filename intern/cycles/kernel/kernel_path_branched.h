@@ -146,6 +146,8 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 
 			/* compute lighting with the BSDF closure */
 			for(int hit = 0; hit < num_hits; hit++) {
+                unsigned int light_linking = object_light_linking(kg, bssrdf_sd[hit].object);
+
 				PathState hit_state = *state;
 
 				path_state_branch(&hit_state, j, num_samples);
@@ -172,7 +174,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				if(kernel_data.integrator.use_direct_light) {
 					bool all = kernel_data.integrator.sample_all_lights_direct;
 					kernel_branched_path_surface_connect_light(kg, rng,
-						&bssrdf_sd[hit], &hit_state, throughput, num_samples_inv, L, all);
+						&bssrdf_sd[hit], &hit_state, throughput, num_samples_inv, L, all, light_linking);
 				}
 #endif
 
@@ -257,6 +259,8 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 			kernel_volume_decoupled_record(kg, &state,
 				&volume_ray, &volume_sd, &volume_segment, heterogeneous);
 
+            unsigned int light_linking = object_light_linking(kg, volume_sd.object);
+
 			/* direct light sampling */
 			if(volume_segment.closure_flag & SD_SCATTER) {
 				volume_segment.sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
@@ -264,7 +268,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				bool all = kernel_data.integrator.sample_all_lights_direct;
 
 				kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
-					throughput, &state, &L, all, &volume_ray, &volume_segment);
+					throughput, &state, &L, all, &volume_ray, &volume_segment, light_linking);
 
 				/* indirect light sampling */
 				int num_samples = kernel_data.integrator.volume_samples;
@@ -383,6 +387,9 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 		shader_eval_surface(kg, &sd, 0.0f, state.flag, SHADER_CONTEXT_MAIN);
 		shader_merge_closures(&sd);
 
+        /* light linking bitmask */
+        unsigned int light_linking = object_light_linking(kg, sd.object);
+
 		/* holdout */
 #ifdef __HOLDOUT__
 		if(sd.flag & (SD_HOLDOUT|SD_HOLDOUT_MASK)) {
@@ -457,7 +464,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 			if(kernel_data.integrator.use_direct_light) {
 				bool all = kernel_data.integrator.sample_all_lights_direct;
 				kernel_branched_path_surface_connect_light(kg, rng,
-					&sd, &hit_state, throughput, 1.0f, &L, all);
+					&sd, &hit_state, throughput, 1.0f, &L, all, light_linking);
 			}
 #endif
 

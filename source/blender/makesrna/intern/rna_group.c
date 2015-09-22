@@ -42,6 +42,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_group.h"
+#include "BKE_depsgraph.h"
 
 #include "WM_api.h"
 
@@ -71,6 +72,12 @@ static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *repo
 	}
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
+}
+
+static void rna_Group_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+{
+    DAG_on_visible_update(bmain, true);
+    WM_main_add_notifier(NC_SCENE | ND_RENDER_RESULT, scene);
 }
 
 #else
@@ -112,6 +119,12 @@ void RNA_def_group(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem light_linking_items[] = {
+		{GP_LIGHT_LINK_NONE, "LIGHT_LINK_NONE", 0, "None", ""},
+		{GP_LIGHT_LINK_INCLUSIVE, "LIGHT_LINK_INCLUSIVE", 0, "Inclusive", ""},
+		{GP_LIGHT_LINK_EXCLUSIVE, "LIGHT_LINK_EXCLUSIVE", 0, "Exclusive", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna = RNA_def_struct(brna, "Group", "ID");
 	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP);
@@ -129,6 +142,11 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Dupli Layers", "Layers visible when this group is instanced as a dupli");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "light_linking", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, light_linking_items);
+	RNA_def_property_ui_text(prop, "Light Linking", "Light Linking");
+	RNA_def_property_update(prop, 0, "rna_Group_update");
 
 	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
