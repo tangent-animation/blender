@@ -496,30 +496,30 @@ void BlenderSync::sync_light_linking()
 
             for(b_gr->objects.begin(b_ob); b_ob != b_gr->objects.end(); ++b_ob) {
 
-                /* Do Dupli groups first */
-                if (b_ob->is_duplicator()) {
-					b_ob->dupli_list_create(b_scene, dupli_settings);
-
-					BL::Object::dupli_list_iterator b_dup;
-					for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
-                        BL::Object b_dup_ob = b_dup->object();
-                        BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_dup->persistent_id();
-
-                        ObjectKey key(*b_ob, persistent_id, b_dup_ob);
-
-                        Object *object = object_map.find(key);
-                        if (object) {
-                            object->light_linking = (object->light_linking == 0x00FFFFFF) ? bit : (object->light_linking | bit);
-                        }
-
-                        Light *light = light_map.find(key);
-                        if (light) {
-                            light->light_linking = (light->light_linking == 0x00FFFFFF) ? bit : (light->light_linking | bit);
-                        }
-
-
-                    }
-                }
+//                /* Do Dupli groups first */
+//                if (b_ob->is_duplicator()) {
+//					b_ob->dupli_list_create(b_scene, dupli_settings);
+//
+//					BL::Object::dupli_list_iterator b_dup;
+//					for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
+//                        BL::Object b_dup_ob = b_dup->object();
+//                        BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_dup->persistent_id();
+//
+//                        ObjectKey key(*b_ob, persistent_id, b_dup_ob);
+//
+//                        Object *object = object_map.find(key);
+//                        if (object) {
+//                            object->light_linking = (object->light_linking == 0x00FFFFFF) ? bit : (object->light_linking | bit);
+//                        }
+//
+//                        Light *light = light_map.find(key);
+//                        if (light) {
+//                            light->light_linking = (light->light_linking == 0x00FFFFFF) ? bit : (light->light_linking | bit);
+//                        }
+//
+//
+//                    }
+//                }
 
                 /* Now regular objects */
                 ObjectKey key(*b_ob, NULL, *b_ob);
@@ -539,7 +539,7 @@ void BlenderSync::sync_light_linking()
             if (inclusive)  ++inclusive_bit_index;
             else            ++exclusive_bit_index;
 
-            if (exclusive_bit_index >= 32 || exclusive_bit_index >= 24) {
+            if (exclusive_bit_index >= 32 || inclusive_bit_index >= 24) {
                 break;
             }
 
