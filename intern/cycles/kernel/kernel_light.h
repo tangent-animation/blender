@@ -845,7 +845,7 @@ ccl_device bool light_in_light_linking(KernelGlobals *kg, int index, unsigned in
 	float4 data4 = kernel_tex_fetch(__light_data, index*LIGHT_SIZE + 4);
 	unsigned int light_light_linking = __float_as_uint(data4.y);
 
-    return light_linking & light_light_linking;
+    return ((light_linking & light_light_linking) != 0) || (light_linking == 0x00000000 && light_light_linking == 0x00FFFFFF);
 }
 
 ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float randv, float time, float3 P, int bounce, unsigned int light_linking, LightSample *ls)
