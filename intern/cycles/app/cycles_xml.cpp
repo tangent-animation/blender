@@ -862,12 +862,14 @@ static void xml_read_background(const XMLReadState& state, pugi::xml_node node)
 
 	xml_read_float(&bg->ao_distance, node, "ao_distance");
 	xml_read_float(&bg->ao_factor, node, "ao_factor");
+	xml_read_bool(&bg->use_ao_env, node, "use_ao_env");
 
 	xml_read_bool(&bg->transparent, node, "transparent");
 
 	/* Background Shader */
 	Shader *shader = state.scene->shaders[state.scene->default_background];
-	
+	Shader *ao_env_shader = state.scene->shaders[state.scene->default_ao_env];
+
 	xml_read_bool(&shader->heterogeneous_volume, node, "heterogeneous_volume");
 	xml_read_int(&shader->volume_interpolation_method, node, "volume_interpolation_method");
 
@@ -879,6 +881,7 @@ static void xml_read_background(const XMLReadState& state, pugi::xml_node node)
 		shader->volume_sampling_method = VOLUME_SAMPLING_MULTIPLE_IMPORTANCE;
 
 	xml_read_shader_graph(state, shader, node);
+	xml_read_shader_graph(state, ao_env_shader, node);
 }
 
 /* Mesh */

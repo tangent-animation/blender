@@ -29,11 +29,13 @@ class Background {
 public:
 	float ao_factor;
 	float ao_distance;
+	bool use_ao_env;
 
 	bool use;
 
 	uint visibility;
 	uint shader;
+	uint ao_env_shader;
 
 	bool transparent;
 	bool need_update;

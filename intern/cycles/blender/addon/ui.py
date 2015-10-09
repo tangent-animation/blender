@@ -961,6 +961,8 @@ class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
         sub.prop(light, "ao_factor", text="Factor")
         row.prop(light, "distance", text="Distance")
 
+        row = layout.row()
+        row.prop(light, "use_ao_env", text="Use Ambient Occlusion Environment")
 
 class CyclesWorld_PT_mist(CyclesButtonsPanel, Panel):
     bl_label = "Mist Pass"

@@ -257,10 +257,14 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 				light_ray.dP = sd.dP;
 				light_ray.dD = differential3_zero();
 
+                ShaderData sd_ao = sd;
+                shader_setup_from_ao_env(kg, &sd_ao, &light_ray, 0, 0);
+                float3 ao_env = shader_eval_ao_env(kg, &sd_ao, 0, SHADER_CONTEXT_MAIN);
+
 				state.flag |= PATH_RAY_AO;
 
 				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow, &sd)) {
-					path_radiance_accum_ao(L, throughput, ao_alpha, ao_bsdf, ao_shadow, state.bounce);
+					path_radiance_accum_ao(L, throughput, ao_alpha, ao_bsdf * ao_env, ao_shadow, state.bounce);
                 }
 
                 state.flag &= ~PATH_RAY_AO;
@@ -330,10 +334,14 @@ ccl_device void kernel_path_ao(KernelGlobals *kg, ShaderData *sd, PathRadiance *
 		light_ray.dP = ccl_fetch(sd, dP);
 		light_ray.dD = differential3_zero();
 
+        ShaderData sd_ao = *sd;
+        shader_setup_from_ao_env(kg, &sd_ao, &light_ray, 0, 0);
+        float3 ao_env = shader_eval_ao_env(kg, &sd_ao, 0, SHADER_CONTEXT_MAIN);
+
         state->flag |= PATH_RAY_AO;
 
 		if(!shadow_blocked(kg, state, &light_ray, &ao_shadow, sd)) {
-			path_radiance_accum_ao(L, throughput, ao_alpha, ao_bsdf, ao_shadow, state->bounce);
+			path_radiance_accum_ao(L, throughput, ao_alpha, ao_bsdf * ao_env, ao_shadow, state->bounce);
         }
 
         state->flag &= ~PATH_RAY_AO;

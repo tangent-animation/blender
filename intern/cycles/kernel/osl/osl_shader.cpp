@@ -382,6 +382,27 @@ float3 OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, int path_fl
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
+float3 OSLShader::eval_ao_env(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
+{
+	/* setup shader globals from shader data */
+	OSLThreadData *tdata = kg->osl_tdata;
+	shaderdata_to_shaderglobals(kg, sd, path_flag, tdata);
+
+	/* execute shader for this point */
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)kg->osl_ss;
+	OSL::ShaderGlobals *globals = &tdata->globals;
+	OSL::ShadingContext *octx = tdata->context[(int)ctx];
+
+	if(kg->osl->ao_env_state)
+		ss->execute(*octx, *(kg->osl->ao_env_state), *globals);
+
+	/* return background color immediately */
+	if(globals->Ci)
+		return flatten_background_closure_tree(globals->Ci);
+
+	return make_float3(0.0f, 0.0f, 0.0f);
+}
+
 /* Volume */
 
 static void flatten_volume_closure_tree(ShaderData *sd,

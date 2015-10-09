@@ -113,6 +113,10 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 	int background_id = scene->shader_manager->get_shader_id(scene->default_background);
 	og->background_state = og->surface_state[background_id & SHADER_MASK];
+
+	int ao_env_id = scene->shader_manager->get_shader_id(scene->default_ao_env);
+	og->ao_env_state = og->surface_state[ao_env_id & SHADER_MASK];
+    
 	og->use = true;
 
 	foreach(Shader *shader, scene->shaders)
@@ -147,6 +151,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 	og->volume_state.clear();
 	og->displacement_state.clear();
 	og->background_state.reset();
+	og->ao_env_state.reset();
 }
 
 void OSLShaderManager::texture_system_init()

@@ -318,6 +318,7 @@ void ShaderManager::device_update_shaders_used(Scene *scene)
 	scene->shaders[scene->default_surface]->used = true;
 	scene->shaders[scene->default_light]->used = true;
 	scene->shaders[scene->default_background]->used = true;
+	scene->shaders[scene->default_ao_env]->used = true;
 	scene->shaders[scene->default_empty]->used = true;
 
 	foreach(Mesh *mesh, scene->meshes)
@@ -482,6 +483,17 @@ void ShaderManager::add_default(Scene *scene)
 		shader->graph = graph;
 		scene->shaders.push_back(shader);
 		scene->default_background = scene->shaders.size() - 1;
+	}
+
+	/* default ao env */
+	{
+		graph = new ShaderGraph();
+
+		shader = new Shader();
+		shader->name = "default_background";
+		shader->graph = graph;
+		scene->shaders.push_back(shader);
+		scene->default_ao_env = scene->shaders.size() - 1;
 	}
 
 	/* default empty */

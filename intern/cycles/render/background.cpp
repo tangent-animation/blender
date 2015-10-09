@@ -32,11 +32,12 @@ Background::Background()
 {
 	ao_factor = 0.0f;
 	ao_distance = FLT_MAX;
-
+    use_ao_env = false;
 	use = true;
 
 	visibility = PATH_RAY_ALL_VISIBILITY;
 	shader = 0;
+	ao_env_shader = 0;
 
 	transparent = false;
 	need_update = true;
@@ -53,10 +54,13 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	
 	device_free(device, dscene);
 
-	if(use)
+	if(use) {
 		shader = scene->default_background;
-	else
+		ao_env_shader = scene->default_background;
+	} else {
 		shader = scene->default_empty;
+		ao_env_shader = scene->default_empty;
+    }
 
 	/* set shader index and transparent option */
 	KernelBackground *kbackground = &dscene->data.background;
@@ -66,6 +70,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
 	kbackground->transparent = transparent;
 	kbackground->surface_shader = scene->shader_manager->get_shader_id(shader);
+	kbackground->ao_env_shader = scene->shader_manager->get_shader_id(ao_env_shader);
 
 	if(scene->shaders[shader]->has_volume)
 		kbackground->volume_shader = kbackground->surface_shader;

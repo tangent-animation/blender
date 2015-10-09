@@ -110,10 +110,13 @@ typedef struct World {
 	float ao_indirect_energy, ao_env_energy, ao_pad2;
 	short ao_indirect_bounces, ao_pad;
 	short ao_samp_method, ao_gather_method, ao_approx_passes;
-	
+
 	/* assorted settings (in the middle of ambient occlusion settings for padding reasons) */
 	short flag;
-	
+
+    short use_ao_env;
+    char  pad1[6];
+
 	/* ambient occlusion (contd...) */
 	float *aosphere, *aotables;
 	
@@ -150,6 +153,7 @@ typedef struct World {
 #define WO_DBVT_CULLING		  32
 #define WO_AMB_OCC   		  64
 #define WO_INDIRECT_LIGHT	  128
+#define WO_ARM                256 /* Ambient reflection mapping */
 
 /* aomix */
 enum {

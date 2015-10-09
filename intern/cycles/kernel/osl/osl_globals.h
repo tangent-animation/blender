@@ -55,6 +55,7 @@ struct OSLGlobals {
 	vector<OSL::ShadingAttribStateRef> volume_state;
 	vector<OSL::ShadingAttribStateRef> displacement_state;
 	OSL::ShadingAttribStateRef background_state;
+	OSL::ShadingAttribStateRef ao_env_state;
 
 	/* attributes */
 	struct Attribute {
