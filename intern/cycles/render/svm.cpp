@@ -77,7 +77,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 			scene->light_manager->need_update = true;
 
 		SVMCompiler compiler(scene->shader_manager, scene->image_manager);
-		compiler.background = ((int)i == scene->default_background);
+		compiler.background = (int)i == scene->default_background;
 		compiler.compile(shader, svm_nodes, i);
 	}
 
@@ -452,7 +452,7 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, set<ShaderNode*>& done
 
 	mix_weight_offset = SVM_STACK_INVALID;
 
-	if(current_type == SHADER_TYPE_SURFACE) {
+	if(current_type == SHADER_TYPE_SURFACE || current_type == SHADER_TYPE_AO_SURFACE) {
 		if(node->has_surface_emission())
 			current_shader->has_surface_emission = true;
 		if(node->has_surface_transparent())
@@ -628,6 +628,9 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 		case SHADER_TYPE_SURFACE:
 			clin = node->input("Surface");
 			break;
+		case SHADER_TYPE_AO_SURFACE:
+			clin = node->input("AOSurface");
+			break;
 		case SHADER_TYPE_VOLUME:
 			clin = node->input("Volume");
 			break;
@@ -658,6 +661,10 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 				case SHADER_TYPE_SURFACE: /* generate surface shader */		
 					generate = true;
 					shader->has_surface = true;
+					break;
+				case SHADER_TYPE_AO_SURFACE: /* generate surface shader */
+					generate = true;
+					shader->has_ao_surface = true;
 					break;
 				case SHADER_TYPE_VOLUME: /* generate volume shader */
 					generate = true;
@@ -708,6 +715,7 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 	current_shader = shader;
 
 	shader->has_surface = false;
+	shader->has_ao_surface = false;
 	shader->has_surface_emission = false;
 	shader->has_surface_transparent = false;
 	shader->has_surface_bssrdf = false;
@@ -735,11 +743,20 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 	global_svm_nodes[index*2 + 1].z = global_svm_nodes.size();
 	global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
 
-	/* generate displacement shader */
-	compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
-	global_svm_nodes[index*2 + 0].w = global_svm_nodes.size();
-	global_svm_nodes[index*2 + 1].w = global_svm_nodes.size();
-	global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+    /* Choose between displacement and AO Surface */
+    ShaderInput *clin = node->input("AOSurface");
+    if (clin->link) {
+        compile_type(shader, shader->graph, SHADER_TYPE_AO_SURFACE);
+        global_svm_nodes[index*2 + 0].w = global_svm_nodes.size();
+        global_svm_nodes[index*2 + 1].w = global_svm_nodes.size();
+        global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+    } else {
+        compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
+        global_svm_nodes[index*2 + 0].w = global_svm_nodes.size();
+        global_svm_nodes[index*2 + 1].w = global_svm_nodes.size();
+        global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+    }
+
 }
 
 CCL_NAMESPACE_END

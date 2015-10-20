@@ -3687,6 +3687,7 @@ OutputNode::OutputNode()
 {
 	add_input("Surface", SHADER_SOCKET_CLOSURE);
 	add_input("Volume", SHADER_SOCKET_CLOSURE);
+	add_input("AOSurface", SHADER_SOCKET_CLOSURE);
 	add_input("Displacement", SHADER_SOCKET_FLOAT);
 	add_input("Normal", SHADER_SOCKET_NORMAL);
 }
@@ -3706,6 +3707,8 @@ void OutputNode::compile(SVMCompiler& compiler)
 void OutputNode::compile(OSLCompiler& compiler)
 {
 	if(compiler.output_type() == SHADER_TYPE_SURFACE)
+		compiler.add(this, "node_output_surface");
+	else if(compiler.output_type() == SHADER_TYPE_AO_SURFACE)
 		compiler.add(this, "node_output_surface");
 	else if(compiler.output_type() == SHADER_TYPE_VOLUME)
 		compiler.add(this, "node_output_volume");

@@ -406,8 +406,6 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 ccl_device_inline void shader_setup_from_ao_env(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int bounce, int transparent_bounce)
 {
     shader_setup_from_background(kg, sd, ray, bounce, transparent_bounce);
-
-	//ccl_fetch(sd, shader) = kernel_data.background.ao_env_shader;
 }
 
 /* ShaderData setup from point inside volume */
@@ -831,46 +829,12 @@ ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 
 ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
 {
-//	ccl_fetch(sd, num_closure) = 0;
-//	ccl_fetch(sd, randb_closure) = 0.0f;
-//
-//#ifdef __OSL__
-//	if(kg->osl) {
-//		return OSLShader::eval_background(kg, sd, path_flag, ctx);
-//	}
-//	else
-//#endif
-//
-//	{
-//#ifdef __SVM__
-//		svm_eval_nodes(kg, sd, SHADER_TYPE_SURFACE, path_flag);
-//
-//		float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-//
-//		for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
-//			const ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
-//
-//			if(CLOSURE_IS_BACKGROUND(sc->type))
-//				eval += sc->weight;
-//		}
-//
-//		return eval;
-//#else
-		return make_float3(0.8f, 0.8f, 0.8f);
-//#endif
-//	}
-}
-
-/* AO Env Evaluation */
-
-ccl_device float3 shader_eval_ao_env(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
-{
 	ccl_fetch(sd, num_closure) = 0;
 	ccl_fetch(sd, randb_closure) = 0.0f;
 
 #ifdef __OSL__
 	if(kg->osl) {
-		return OSLShader::eval_ao_env(kg, sd, path_flag, ctx);
+		return OSLShader::eval_background(kg, sd, path_flag, ctx);
 	}
 	else
 #endif
@@ -891,6 +855,47 @@ ccl_device float3 shader_eval_ao_env(KernelGlobals *kg, ShaderData *sd, int path
 		return eval;
 #else
 		return make_float3(0.8f, 0.8f, 0.8f);
+#endif
+	}
+}
+
+/* AO Env Evaluation */
+
+ccl_device float3 shader_eval_ao_env(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
+{
+	ccl_fetch(sd, num_closure) = 0;
+	ccl_fetch(sd, randb_closure) = 0.0f;
+
+#ifdef __OSL__
+	if(kg->osl) {
+		return OSLShader::eval_ao_env(kg, sd, path_flag, ctx);
+	}
+	else
+#endif
+
+	{
+#ifdef __SVM__
+        svm_eval_nodes(kg, sd, SHADER_TYPE_AO_SURFACE, path_flag);
+        int num_closure = ccl_fetch(sd, num_closure);
+
+        /* If there's no shader input, default white */
+        if (num_closure == 0) {
+            return make_float3(1.0f, 1.0f, 1.0f);
+
+        } else {
+            float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+
+            for(int i = 0; i < num_closure; i++) {
+                const ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
+
+                if(CLOSURE_IS_BACKGROUND(sc->type))
+                    eval += sc->weight;
+            }
+
+            return eval;
+        }
+#else
+		return make_float3(1.0f, 1.0f, 1.0f);
 #endif
 	}
 }

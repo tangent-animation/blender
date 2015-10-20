@@ -114,9 +114,6 @@ typedef struct World {
 	/* assorted settings (in the middle of ambient occlusion settings for padding reasons) */
 	short flag;
 
-    short use_ao_env;
-    char  pad1[6];
-
 	/* ambient occlusion (contd...) */
 	float *aosphere, *aotables;
 	

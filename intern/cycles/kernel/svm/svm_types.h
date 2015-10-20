@@ -351,6 +351,7 @@ typedef enum NodeBumpOffset {
 
 typedef enum ShaderType {
 	SHADER_TYPE_SURFACE,
+	SHADER_TYPE_AO_SURFACE,
 	SHADER_TYPE_VOLUME,
 	SHADER_TYPE_DISPLACEMENT
 } ShaderType;

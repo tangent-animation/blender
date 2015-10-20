@@ -150,6 +150,7 @@ Shader::Shader()
 	shadow_alpha = 1.0;
 
 	has_surface = false;
+	has_ao_surface = false;
 	has_surface_transparent = false;
 	has_surface_emission = false;
 	has_surface_bssrdf = false;
@@ -204,6 +205,7 @@ void Shader::tag_update(Scene *scene)
 	OutputNode *output = graph->output();
 	bool prev_has_volume = has_volume;
 	has_surface = has_surface || output->input("Surface")->link;
+	has_ao_surface = has_ao_surface || output->input("AOSurface")->link;
 	has_volume = has_volume || output->input("Volume")->link;
 	has_displacement = has_displacement || output->input("Displacement")->link;
 
@@ -318,7 +320,6 @@ void ShaderManager::device_update_shaders_used(Scene *scene)
 	scene->shaders[scene->default_surface]->used = true;
 	scene->shaders[scene->default_light]->used = true;
 	scene->shaders[scene->default_background]->used = true;
-	scene->shaders[scene->default_ao_env]->used = true;
 	scene->shaders[scene->default_empty]->used = true;
 
 	foreach(Mesh *mesh, scene->meshes)
@@ -357,7 +358,7 @@ void ShaderManager::device_update_common(Device *device,
 			has_volumes = true;
 
 			/* in this case we can assume transparent surface */
-			if(!shader->has_surface)
+			if(!shader->has_surface && !shader->has_ao_surface)
 				flag |= SD_HAS_ONLY_VOLUME;
 
 			/* todo: this could check more fine grained, to skip useless volumes
@@ -483,17 +484,6 @@ void ShaderManager::add_default(Scene *scene)
 		shader->graph = graph;
 		scene->shaders.push_back(shader);
 		scene->default_background = scene->shaders.size() - 1;
-	}
-
-	/* default ao env */
-	{
-		graph = new ShaderGraph();
-
-		shader = new Shader();
-		shader->name = "default_background";
-		shader->graph = graph;
-		scene->shaders.push_back(shader);
-		scene->default_ao_env = scene->shaders.size() - 1;
 	}
 
 	/* default empty */

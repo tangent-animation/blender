@@ -1089,6 +1089,8 @@ void BlenderSync::sync_world(bool update_all)
 	BL::World b_world = b_scene.world();
 
 	if(world_recalc || update_all || b_world.ptr.data != world_map) {
+
+        /* Background Setup */
 		Shader *shader = scene->shaders[scene->default_background];
 		ShaderGraph *graph = new ShaderGraph();
 
@@ -1106,12 +1108,20 @@ void BlenderSync::sync_world(bool update_all)
 		}
 		else if(b_world) {
 			ShaderNode *closure, *out;
-
-			closure = graph->add(new BackgroundNode());
-			closure->input("Color")->value = get_float3(b_world.horizon_color());
 			out = graph->output();
 
+            /* Surface */
+			closure = graph->add(new BackgroundNode());
+			closure->input("Color")->value = get_float3(b_world.horizon_color());
+
 			graph->connect(closure->output("Background"), out->input("Surface"));
+
+            /* AOSurface */
+			closure = graph->add(new BackgroundNode());
+			closure->input("Color")->value = make_float3(1.0f, 1.0f, 1.0f);
+
+			graph->connect(closure->output("Background"), out->input("AOSurface"));
+
 		}
 
 		if(b_world) {
@@ -1140,6 +1150,7 @@ void BlenderSync::sync_world(bool update_all)
 
 		shader->set_graph(graph);
 		shader->tag_update(scene);
+
 		background->tag_update(scene);
 	}
 

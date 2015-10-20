@@ -868,7 +868,6 @@ typedef struct KernelBackground {
 	int surface_shader;
 	int volume_shader;
 	int transparent;
-	int ao_env_shader;
 
 	/* ambient occlusion */
 	float ao_factor;

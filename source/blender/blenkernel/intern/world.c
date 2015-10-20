@@ -110,8 +110,6 @@ World *add_world(Main *bmain, const char *name)
 	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
 	wrld->ao_approx_error = 0.25f;
 
-	wrld->use_ao_env = false;
-
 	wrld->preview = NULL;
 	wrld->miststa = 5.0f;
 	wrld->mistdist = 25.0f;

@@ -260,11 +260,6 @@ static void rna_def_lighting(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blend Mode", "Defines how AO mixes with material shading");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop = RNA_def_property(srna, "use_ao_env", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "use_ao_env", WO_ARM);
-	RNA_def_property_ui_text(prop, "Use Ambient Occlusion Environment", "Use Ambient Occlusion Environment");
-	RNA_def_property_update(prop, 0, "rna_World_update");
-
 	/* environment lighting */
 	prop = RNA_def_property(srna, "use_environment_light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_ENV_LIGHT);

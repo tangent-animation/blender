@@ -114,9 +114,9 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	int background_id = scene->shader_manager->get_shader_id(scene->default_background);
 	og->background_state = og->surface_state[background_id & SHADER_MASK];
 
-	int ao_env_id = scene->shader_manager->get_shader_id(scene->default_ao_env);
+	int ao_env_id = scene->shader_manager->get_shader_id(scene->default_background);
 	og->ao_env_state = og->surface_state[ao_env_id & SHADER_MASK];
-    
+
 	og->use = true;
 
 	foreach(Shader *shader, scene->shaders)
@@ -460,6 +460,8 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 	if(node->name == ustring("output")) {
 		if(strcmp(input->name, "Surface") == 0 && current_type != SHADER_TYPE_SURFACE)
 			return true;
+		if(strcmp(input->name, "AOSurface") == 0 && current_type != SHADER_TYPE_AO_SURFACE)
+			return true;
 		if(strcmp(input->name, "Volume") == 0 && current_type != SHADER_TYPE_VOLUME)
 			return true;
 		if(strcmp(input->name, "Displacement") == 0 && current_type != SHADER_TYPE_DISPLACEMENT)
@@ -533,6 +535,8 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 	 * and "displacement" atm */
 	if(current_type == SHADER_TYPE_SURFACE)
 		ss->Shader("surface", name, id(node).c_str());
+	else if(current_type == SHADER_TYPE_AO_SURFACE)
+		ss->Shader("surface", name, id(node).c_str());
 	else if(current_type == SHADER_TYPE_VOLUME)
 		ss->Shader("surface", name, id(node).c_str());
 	else if(current_type == SHADER_TYPE_DISPLACEMENT)
@@ -559,7 +563,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 	/* test if we shader contains specific closures */
 	OSLShaderInfo *info = ((OSLShaderManager*)manager)->shader_loaded_info(name);
 
-	if(info && current_type == SHADER_TYPE_SURFACE) {
+	if(info && (current_type == SHADER_TYPE_SURFACE || current_type == SHADER_TYPE_AO_SURFACE)) {
 		if(info->has_surface_emission)
 			current_shader->has_surface_emission = true;
 		if(info->has_surface_transparent)
@@ -732,7 +736,7 @@ void OSLCompiler::generate_nodes(const set<ShaderNode*>& nodes)
 					node->compile(*this);
 					done.insert(node);
 
-					if(current_type == SHADER_TYPE_SURFACE) {
+					if(current_type == SHADER_TYPE_SURFACE || current_type == SHADER_TYPE_AO_SURFACE) {
 						if(node->has_surface_emission())
 							current_shader->has_surface_emission = true;
 						if(node->has_surface_transparent())
@@ -769,6 +773,12 @@ OSL::ShadingAttribStateRef OSLCompiler::compile_type(Shader *shader, ShaderGraph
 	if(type == SHADER_TYPE_SURFACE) {
 		/* generate surface shader */
 		find_dependencies(dependencies, output->input("Surface"));
+		generate_nodes(dependencies);
+		output->compile(*this);
+	}
+	else if(type == SHADER_TYPE_AO_SURFACE) {
+		/* generate surface shader */
+		find_dependencies(dependencies, output->input("AOSurface"));
 		generate_nodes(dependencies);
 		output->compile(*this);
 	}
@@ -836,6 +846,15 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 			shader->osl_surface_bump_ref = OSL::ShadingAttribStateRef();
 		}
 
+		/* generate ao surface shader */
+		if(shader->used && graph && output->input("AOSurface")->link) {
+			shader->osl_ao_surface_ref = compile_type(shader, shader->graph, SHADER_TYPE_AO_SURFACE);
+			shader->has_ao_surface = true;
+		}
+		else {
+			shader->osl_ao_surface_ref = OSL::ShadingAttribStateRef();
+		}
+
 		/* generate volume shader */
 		if(shader->used && graph && output->input("Volume")->link) {
 			shader->osl_volume_ref = compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
@@ -855,6 +874,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 
 	/* push state to array for lookup */
 	og->surface_state.push_back(shader->osl_surface_ref);
+	og->surface_state.push_back(shader->osl_ao_surface_ref);
 	og->surface_state.push_back(shader->osl_surface_bump_ref);
 
 	og->volume_state.push_back(shader->osl_volume_ref);
