@@ -937,6 +937,23 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
         panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
 
 
+class CyclesWorld_PT_aosurface(CyclesButtonsPanel, Panel):
+    bl_label = "AOSurface"
+    bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        world = context.world
+        return world and world.node_tree and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        world = context.world
+        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'AOSurface')
+
+
 class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
     bl_label = "Ambient Occlusion"
     bl_context = "world"
