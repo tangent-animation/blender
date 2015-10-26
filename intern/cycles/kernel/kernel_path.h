@@ -215,7 +215,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 		/* path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
 		 * shader evaluations, only need emission if we are going to terminate */
-		float probability = path_state_terminate_probability(kg, &state, throughput*num_samples);
+		float probability = path_state_terminate_probability(kg, &state, &sd, throughput*num_samples);
 
 		if(probability == 0.0f) {
 			break;
@@ -655,7 +655,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 		/* path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
 		 * shader evaluations, only need emission if we are going to terminate */
-		float probability = path_state_terminate_probability(kg, &state, throughput);
+		float probability = path_state_terminate_probability(kg, &state, &sd, throughput);
 
 		if(probability == 0.0f) {
 			break;

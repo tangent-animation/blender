@@ -83,13 +83,13 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 		int num_samples;
 
 		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type))
-			num_samples = kernel_data.integrator.diffuse_samples;
+			num_samples = (ccl_fetch(sd, flag) & SD_OVERRIDE_SAMPLES) ? ccl_fetch(sd, diffuse_samples) : kernel_data.integrator.diffuse_samples;
 		else if(CLOSURE_IS_BSDF_BSSRDF(sc->type))
 			num_samples = 1;
 		else if(CLOSURE_IS_BSDF_GLOSSY(sc->type))
-			num_samples = kernel_data.integrator.glossy_samples;
+			num_samples = (ccl_fetch(sd, flag) & SD_OVERRIDE_SAMPLES) ? ccl_fetch(sd, glossy_samples) : kernel_data.integrator.glossy_samples;
 		else
-			num_samples = kernel_data.integrator.transmission_samples;
+			num_samples = (ccl_fetch(sd, flag) & SD_OVERRIDE_SAMPLES) ? ccl_fetch(sd, transmission_samples) : kernel_data.integrator.transmission_samples;
 
 		num_samples = ceil_to_int(num_samples_adjust*num_samples);
 
@@ -430,7 +430,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 			/* path termination. this is a strange place to put the termination, it's
 			 * mainly due to the mixed in MIS that we use. gives too many unneeded
 			 * shader evaluations, only need emission if we are going to terminate */
-			float probability = path_state_terminate_probability(kg, &state, throughput);
+			float probability = path_state_terminate_probability(kg, &state, &sd, throughput);
 
 			if(probability == 0.0f) {
 				break;

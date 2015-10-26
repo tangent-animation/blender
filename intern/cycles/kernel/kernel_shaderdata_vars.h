@@ -38,6 +38,16 @@ SD_VAR(int, flag)
 SD_VAR(float, ao_alpha)
 SD_VAR(float, shadow_alpha)
 
+/* Sampling overrides */
+SD_VAR(int, diffuse_samples);
+SD_VAR(int, glossy_samples);
+SD_VAR(int, transmission_samples);
+
+/* Bounces overrides */
+SD_VAR(int, diffuse_bounces);
+SD_VAR(int, glossy_bounces);
+SD_VAR(int, transmission_bounces);
+
 /* primitive id if there is one, ~0 otherwise */
 SD_VAR(int, prim)
 

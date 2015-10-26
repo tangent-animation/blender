@@ -661,20 +661,23 @@ enum ShaderDataFlag {
 	SD_HAS_BUMP               		= (1 << 19),  /* has data connected to the displacement input */
 	SD_USE_UNIFORM_ALPHA	  		= (1 << 20),  /* uses a uniform alpha instead of evaluating shaders */
     SD_USE_UNIFORM_ALPHA_SELF_ONLY	= (1 << 21),  /* uniform alpha only affect shading self */
+    SD_OVERRIDE_SAMPLES             = (1 << 22),  /* override samples */
+    SD_OVERRIDE_BOUNCES             = (1 << 23),  /* override bounces */
 
 	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|
 	                   SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|
 	                   SD_HAS_BSSRDF_BUMP|SD_VOLUME_EQUIANGULAR|SD_VOLUME_MIS|
-	                   SD_VOLUME_CUBIC|SD_HAS_BUMP|SD_USE_UNIFORM_ALPHA|SD_USE_UNIFORM_ALPHA_SELF_ONLY),
+	                   SD_VOLUME_CUBIC|SD_HAS_BUMP|SD_USE_UNIFORM_ALPHA|SD_USE_UNIFORM_ALPHA_SELF_ONLY|
+                       SD_OVERRIDE_SAMPLES|SD_OVERRIDE_BOUNCES),
 
 	/* object flags */
-	SD_HOLDOUT_MASK             = (1 << 22),  /* holdout for camera rays */
-	SD_OBJECT_MOTION            = (1 << 23),  /* has object motion blur */
-	SD_TRANSFORM_APPLIED        = (1 << 24),  /* vertices have transform applied */
-	SD_NEGATIVE_SCALE_APPLIED   = (1 << 25),  /* vertices have negative scale applied */
-	SD_OBJECT_HAS_VOLUME        = (1 << 26),  /* object has a volume shader */
-	SD_OBJECT_INTERSECTS_VOLUME = (1 << 27),  /* object intersects AABB of an object with volume shader */
-	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 28),  /* has position for motion vertices */
+	SD_HOLDOUT_MASK             = (1 << 24),  /* holdout for camera rays */
+	SD_OBJECT_MOTION            = (1 << 25),  /* has object motion blur */
+	SD_TRANSFORM_APPLIED        = (1 << 26),  /* vertices have transform applied */
+	SD_NEGATIVE_SCALE_APPLIED   = (1 << 27),  /* vertices have negative scale applied */
+	SD_OBJECT_HAS_VOLUME        = (1 << 28),  /* object has a volume shader */
+	SD_OBJECT_INTERSECTS_VOLUME = (1 << 29),  /* object intersects AABB of an object with volume shader */
+	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 30),  /* has position for motion vertices */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED|
 	                   SD_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|

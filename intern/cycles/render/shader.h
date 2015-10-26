@@ -99,6 +99,17 @@ public:
 	float ao_alpha;
 	float shadow_alpha;
 
+    /* overrides */
+	bool override_samples;
+	int diffuse_samples;
+	int glossy_samples;
+	int transmission_samples;
+
+	bool override_bounces;
+	int diffuse_bounces;
+	int glossy_bounces;
+	int transmission_bounces;
+
 	/* synchronization */
 	bool need_update;
 	bool need_update_attributes;

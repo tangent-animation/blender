@@ -149,6 +149,16 @@ Shader::Shader()
 	ao_alpha = 1.0;
 	shadow_alpha = 1.0;
 
+    override_samples = false;
+	diffuse_samples = 0;
+	glossy_samples = 0;
+	transmission_samples = 0;
+
+    override_bounces = false;
+	diffuse_bounces = 0;
+	glossy_bounces = 0;
+	transmission_bounces = 0;
+
 	has_surface = false;
 	has_ao_surface = false;
 	has_surface_transparent = false;
@@ -341,7 +351,7 @@ void ShaderManager::device_update_common(Device *device,
 	if(scene->shaders.size() == 0)
 		return;
 
-	uint shader_flag_size = scene->shaders.size()*8;
+	uint shader_flag_size = scene->shaders.size()*20;
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
 	bool has_volumes = false;
@@ -380,6 +390,11 @@ void ShaderManager::device_update_common(Device *device,
 			flag |= SD_HAS_BUMP;
         if(shader->use_uniform_alpha)
         	flag |= SD_USE_UNIFORM_ALPHA;
+        if(shader->override_samples)
+        	flag |= SD_OVERRIDE_SAMPLES;
+        if(shader->override_bounces)
+        	flag |= SD_OVERRIDE_BOUNCES;
+
         if(shader->self_only)
         	flag |= SD_USE_UNIFORM_ALPHA_SELF_ONLY;
 
@@ -390,6 +405,14 @@ void ShaderManager::device_update_common(Device *device,
 		shader_flag[i++] = __float_as_uint(shader->ao_alpha);
 		shader_flag[i++] = __float_as_uint(shader->shadow_alpha);
 
+		shader_flag[i++] = shader->diffuse_samples;
+		shader_flag[i++] = shader->glossy_samples;
+		shader_flag[i++] = shader->transmission_samples;
+
+		shader_flag[i++] = shader->diffuse_bounces;
+		shader_flag[i++] = shader->glossy_bounces;
+		shader_flag[i++] = shader->transmission_bounces;
+
 		/* shader with bump mapping */
 		if(shader->graph_bump)
 			flag |= SD_HAS_BSSRDF_BUMP;
@@ -399,6 +422,15 @@ void ShaderManager::device_update_common(Device *device,
 
 		shader_flag[i++] = __float_as_uint(shader->ao_alpha);
 		shader_flag[i++] = __float_as_uint(shader->shadow_alpha);
+
+		shader_flag[i++] = shader->diffuse_samples;
+		shader_flag[i++] = shader->glossy_samples;
+		shader_flag[i++] = shader->transmission_samples;
+
+		shader_flag[i++] = shader->diffuse_bounces;
+		shader_flag[i++] = shader->glossy_bounces;
+		shader_flag[i++] = shader->transmission_bounces;
+
 	}
 
 	device->tex_alloc("__shader_flag", dscene->shader_flag);

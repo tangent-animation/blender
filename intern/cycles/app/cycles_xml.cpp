@@ -849,6 +849,17 @@ static void xml_read_shader(const XMLReadState& state, pugi::xml_node node)
 	xml_read_float(&shader->ao_alpha, node, "ao_alpha");
 	xml_read_float(&shader->shadow_alpha, node, "shadow_alpha");
 
+    /* Overrides */
+	xml_read_bool(&shader->override_samples, node, "override_samples");
+	xml_read_int(&shader->diffuse_samples, node, "diffuse_samples");
+	xml_read_int(&shader->glossy_samples, node, "glossy_samples");
+	xml_read_int(&shader->transmission_samples, node, "transmission_samples");
+
+	xml_read_bool(&shader->override_bounces, node, "override_bounces");
+	xml_read_int(&shader->diffuse_bounces, node, "diffuse_bounces");
+	xml_read_int(&shader->glossy_bounces, node, "glossy_bounces");
+	xml_read_int(&shader->transmission_bounces, node, "transmission_bounces");
+
 	xml_read_shader_graph(state, shader, node);
 	state.scene->shaders.push_back(shader);
 }
