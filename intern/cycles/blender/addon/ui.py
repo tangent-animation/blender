@@ -1190,17 +1190,18 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column(align=True)
-        col.prop(cmat, "override_samples")
-        col.prop(cmat, "diffuse_samples", text="Diffuse")
-        col.prop(cmat, "glossy_samples", text="Glossy")
-        col.prop(cmat, "transmission_samples", text="Transmission")
-
-        col = split.column(align=True)
         col.prop(cmat, "override_bounces")
         col.prop(cmat, "diffuse_bounces", text="Diffuse")
         col.prop(cmat, "glossy_bounces", text="Glossy")
         col.prop(cmat, "transmission_bounces", text="Transmission")
 
+        # Calculate sample values
+        if use_branched_path(context):
+            col = split.column(align=True)
+            col.prop(cmat, "override_samples")
+            col.prop(cmat, "diffuse_samples", text="Diffuse")
+            col.prop(cmat, "glossy_samples", text="Glossy")
+            col.prop(cmat, "transmission_samples", text="Transmission")
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
     bl_label = ""
