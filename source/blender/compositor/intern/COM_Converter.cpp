@@ -87,6 +87,7 @@ extern "C" {
 #include "COM_MixNode.h"
 #include "COM_MovieClipNode.h"
 #include "COM_MovieDistortionNode.h"
+#include "COM_MotionBlur2DNode.h"
 #include "COM_NormalNode.h"
 #include "COM_NormalizeNode.h"
 #include "COM_OutputFileNode.h"
@@ -405,6 +406,9 @@ Node *Converter::convert(bNode *b_node)
 			break;
 		case CMP_NODE_SUNBEAMS:
 			node = new SunBeamsNode(b_node);
+			break;
+		case CMP_NODE_MOTIONBLUR2D:
+			node = new MotionBlur2DNode(b_node);
 			break;
 	}
 	return node;
