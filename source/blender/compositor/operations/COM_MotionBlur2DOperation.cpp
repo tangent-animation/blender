@@ -209,16 +209,16 @@ void MotionBlur2DOperation::generateMotionBlur(float *data, MemoryBuffer *color,
     // was there. But first we have to estimate where these holes are.
     //
     // As the pixels are blurred in the direction of movement, the original color alpha channel is sampled.
-    // The estimate of the alpha should  be is simply the fraction of the blurred pixel vector that is within
-    // the mask of the color channel. As the blurred samples are summed for each pixel, the estimate will
-    // converge to the alpha.
+    // The estimate of the alpha *should be* is simply the fraction of the blurred pixel vector that is within
+    // the mask of the non blurred color channel. As the blurred samples are summed for each pixel, the estimate will
+    // converge to the desired alpha. You can then compare the desired alpha to the actual alpha to estimate the
+    // holes.
     //
     // It's not intuitive at all, but it works. Turn on DEBUG_RENDER_ALPHA_MASK to see the result.
     //
     // Once we know what the alpha value of the hole (from the color alpha channel) is and the desired alpha (mask)
-    // we can "boost" the color by compositing itself using the "over" operation until the alpha equals
-    // the original value. NOTE: This technique cannot fix alphas outside of the object but the artifacts
-    // are acceptable in motion.
+    // we can "boost" the color until the alpha equals the original value. NOTE: This technique cannot fix alphas
+    // outside of the object but the artifacts are acceptable in motion.
 
 #if !DEBUG_RENDER_ALPHA_MASK
     if (this->m_settings->fill_alpha_holes) {
