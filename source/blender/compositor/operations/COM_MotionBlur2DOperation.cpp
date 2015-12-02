@@ -77,7 +77,7 @@ void *MotionBlur2DOperation::initializeTileData(rcti *rect)
         MemoryBuffer *speed = (MemoryBuffer *)m_inputSpeedProgram->initializeTileData(rect);
         float *data = (float *)MEM_callocN(MEM_allocN_len(color->getBuffer()), "motion2D data buffer");
 
-        if (m_settings->deep_mode) {
+        if (m_settings->fat_mode) {
             MemoryBuffer *depth = (MemoryBuffer *)m_inputDepthProgram->initializeTileData(rect);
             MemoryBuffer *objid = (MemoryBuffer *)m_inputObjIDProgram->initializeTileData(rect);
             generateMotionBlurDeep(data, color, speed, depth, objid);
@@ -370,7 +370,7 @@ void MotionBlur2DOperation::generateMotionBlurDeep(float *data, MemoryBuffer *co
             float *depth_pixel = depth->getBuffer() + index_val;
             float *objid_pixel = objid->getBuffer() + index_val;
 
-            // Calculate a motion vector
+            // Calculate a motion vector and depth
             float z = *depth_pixel;
 
             int x0 = x + speed_pixel[0] * forward_factor;
@@ -387,10 +387,15 @@ void MotionBlur2DOperation::generateMotionBlurDeep(float *data, MemoryBuffer *co
                 int ys = line_samples[s].y;
 
                 // Alpha ramp
-                float alpha = (float) (s+1) / (float) num_line_samples;
-                if (num_line_samples > 1)
-                    alpha = (alpha < 0.5F) ? (alpha*2.0F) : (1.0F - (alpha-0.5F)*2.0F);    //a=0,r=0; a=0.5,r=1.0; a=1.0,r=0.0
-                alpha *= color_pixel[3];
+                float alpha;
+                if (num_line_samples > 1) {
+                    // Triangle ramp
+                    alpha = (float) s / (float) (num_line_samples-1);
+                    alpha = (alpha < 0.5f) ? (alpha*2.0f) : (1.0f - (alpha-0.5f)*2.0f);
+                    alpha *= color_pixel[3];
+                } else {
+                    alpha = color_pixel[3];
+                }
 
                 // If outside image, ignore
                 if (xs < 0 || xs >= width_multisample || ys < 0 || ys >= height_multisample) {
@@ -483,7 +488,7 @@ void MotionBlur2DOperation::generateMotionBlurDeep(float *data, MemoryBuffer *co
                 sample = samples_array[i];
 
                 // Correct alpha to calculated alpha
-                if (sample->color[3] <= 0.0F || sample->max_alpha <= 0.0F)
+                if (sample->color[3] <= 0.0F)
                     continue;
 
                 // Normalize sample and premultiply alphas
@@ -502,10 +507,6 @@ void MotionBlur2DOperation::generateMotionBlurDeep(float *data, MemoryBuffer *co
                 data_pixel[3] = data_pixel[3] * front_mix + sample->color[3] * back_mix;
             }
 
-            // Un-premultiply Alphas
-//            data_pixel[0] = data_pixel[0] / data_pixel[3];
-//            data_pixel[1] = data_pixel[1] / data_pixel[3];
-//            data_pixel[2] = data_pixel[2] / data_pixel[3];
         }
     }
 

@@ -2453,11 +2453,11 @@ static void node_composit_buts_motionblur2d(uiLayout *layout, bContext *UNUSED(C
 	bNode *node = ptr->data;
     NodeMotionBlur2D *data = node->storage;
 
-	uiItemR(layout, ptr, "deep_mode", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "fat_mode", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "amount", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "multisample", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 
-    if (!data->deep_mode) {
+    if (!data->fat_mode) {
         uiItemR(layout, ptr, "fill_alpha_holes", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
     }
 }

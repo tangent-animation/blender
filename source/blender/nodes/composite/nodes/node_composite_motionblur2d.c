@@ -52,7 +52,7 @@ static void init(const bContext *C, PointerRNA *ptr)
 
 	node->id = (ID *)scene->clip;
 	node->storage = user;
-    user->deep_mode = false;
+    user->fat_mode = false;
 	user->amount = 1.0f;
 	user->multisample = 1;
 	user->fill_alpha_holes = true;

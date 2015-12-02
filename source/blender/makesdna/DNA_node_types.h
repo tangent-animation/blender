@@ -866,7 +866,7 @@ typedef struct NodeSunBeams {
 typedef struct NodeMotionBlur2D {
 	float amount;
     int multisample;
-    short deep_mode;
+    short fat_mode;
     short fill_alpha_holes;
 } NodeMotionBlur2D;
 

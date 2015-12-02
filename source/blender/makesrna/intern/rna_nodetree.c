@@ -6394,8 +6394,8 @@ static void def_cmp_motionblur2d(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Multisampling", "Multisampling amount");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-	prop = RNA_def_property(srna, "deep_mode", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Deep Mode", "Turn on Deep mode");
+	prop = RNA_def_property(srna, "fat_mode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Fat Mode", "Turn on Fat mode");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "fill_alpha_holes", PROP_BOOLEAN, PROP_NONE);
