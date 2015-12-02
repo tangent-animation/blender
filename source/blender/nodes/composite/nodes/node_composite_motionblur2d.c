@@ -34,7 +34,9 @@
 
 static bNodeSocketTemplate inputs[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
-	{	SOCK_RGBA, 1, N_("Speed"),			1.0f, 1.0f, 1.0f, 1.0f},
+	{   SOCK_FLOAT, 1, N_("Speed"),         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_VELOCITY},
+	{   SOCK_FLOAT, 1, N_("Z"),             0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
+	{   SOCK_FLOAT, 1, N_("Object Index"),  0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate outputs[] = {
@@ -50,10 +52,9 @@ static void init(const bContext *C, PointerRNA *ptr)
 
 	node->id = (ID *)scene->clip;
 	node->storage = user;
+    user->deep_mode = false;
 	user->amount = 1.0f;
 	user->multisample = 1;
-	user->blur_forwards = true;
-	user->blur_backwards = true;
 	user->fill_alpha_holes = true;
 }
 

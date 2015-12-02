@@ -866,10 +866,8 @@ typedef struct NodeSunBeams {
 typedef struct NodeMotionBlur2D {
 	float amount;
     int multisample;
-    short blur_forwards;
-    short blur_backwards;
+    short deep_mode;
     short fill_alpha_holes;
-    char pad[2];
 } NodeMotionBlur2D;
 
 /* script node mode */

@@ -2450,11 +2450,16 @@ static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), P
 
 static void node_composit_buts_motionblur2d(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	bNode *node = ptr->data;
+    NodeMotionBlur2D *data = node->storage;
+
+	uiItemR(layout, ptr, "deep_mode", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "amount", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "multisample", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(layout, ptr, "blur_forwards", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
-	uiItemR(layout, ptr, "blur_backwards", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
-	uiItemR(layout, ptr, "fill_alpha_holes", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+
+    if (!data->deep_mode) {
+        uiItemR(layout, ptr, "fill_alpha_holes", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+    }
 }
 
 /* only once called */

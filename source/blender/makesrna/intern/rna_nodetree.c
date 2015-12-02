@@ -6389,17 +6389,13 @@ static void def_cmp_motionblur2d(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "multisample", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "multisample");
-	RNA_def_property_range(prop, 1, 4);
-	RNA_def_property_ui_range(prop, 1, 4, 1, 1);
+	RNA_def_property_range(prop, 1, 8);
+	RNA_def_property_ui_range(prop, 1, 8, 1, 1);
 	RNA_def_property_ui_text(prop, "Multisampling", "Multisampling amount");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-	prop = RNA_def_property(srna, "blur_forwards", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Blur Forwards", "Apply forward blur");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-	prop = RNA_def_property(srna, "blur_backwards", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Blur Backwards", "Apply backward blur");
+	prop = RNA_def_property(srna, "deep_mode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Deep Mode", "Turn on Deep mode");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "fill_alpha_holes", PROP_BOOLEAN, PROP_NONE);

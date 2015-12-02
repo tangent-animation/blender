@@ -32,6 +32,8 @@ private:
 	 */
 	SocketReader *m_inputImageProgram;
 	SocketReader *m_inputSpeedProgram;
+	SocketReader *m_inputDepthProgram;
+	SocketReader *m_inputObjIDProgram;
 
 	NodeMotionBlur2D *m_settings;
 	float *m_cachedInstance;
@@ -40,6 +42,29 @@ private:
     struct Sample {
         int x,y;
     };
+
+    // Deep sample
+    struct DeepSample {
+        float obj_id;
+        float color[4];
+        float depth;
+        float max_alpha;
+        DeepSample *next_sample;
+    };
+
+    struct DeepSamplePixel {
+        DeepSample *samples;
+    };
+
+    struct DeepSampleBuffer {
+        DeepSampleBuffer *next_buffer;
+        DeepSample buffers[1024*256];
+    };
+
+    DeepSample *samples;
+    DeepSampleBuffer *buffers;
+
+    DeepSample* alloc_sample (void);
 
 public:
 	MotionBlur2DOperation();
@@ -54,6 +79,9 @@ public:
     void line (int x0, int y0, int x1, int y1, Sample *samples, int *num_samples);
 
     void generateMotionBlur(float *data, MemoryBuffer *inputImage, MemoryBuffer *inputSpeed);
+    void generateMotionBlurDeep(float *data, MemoryBuffer *color, MemoryBuffer *speed, MemoryBuffer *depth, MemoryBuffer *objid);
+
+    static bool deepSamplesSortFn(DeepSample *a, DeepSample *b);
 
 	void setMotionBlurSettings(NodeMotionBlur2D *settings) { this->m_settings = settings; }
 

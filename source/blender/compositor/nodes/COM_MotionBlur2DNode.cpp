@@ -39,5 +39,7 @@ void MotionBlur2DNode::convertToOperations(NodeConverter &converter, const Compo
 	
 	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+	converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
+	converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(3));
 	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }
