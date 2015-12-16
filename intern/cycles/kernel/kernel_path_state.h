@@ -152,8 +152,16 @@ ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, ccl_
 
         if (ccl_fetch(sd, flag) & SD_OVERRIDE_BOUNCES) {
             max_diffuse_bounce = ccl_fetch(sd, diffuse_bounces);
+            if (max_diffuse_bounce < 0)
+                 max_diffuse_bounce = kernel_data.integrator.max_diffuse_bounce;
+
             max_glossy_bounce = ccl_fetch(sd, glossy_bounces);
+            if (max_glossy_bounce < 0)
+                 max_glossy_bounce = kernel_data.integrator.max_glossy_bounce;
+
             max_transmission_bounce = ccl_fetch(sd, transmission_bounces);
+            if (max_transmission_bounce < 0)
+                 max_transmission_bounce = kernel_data.integrator.max_transmission_bounce;
         } else {
             max_diffuse_bounce = kernel_data.integrator.max_diffuse_bounce;
             max_glossy_bounce = kernel_data.integrator.max_glossy_bounce;

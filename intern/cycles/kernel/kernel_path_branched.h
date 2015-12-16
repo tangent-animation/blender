@@ -82,14 +82,30 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 
 		int num_samples;
 
-		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type))
-			num_samples = (ccl_fetch(sd, flag) & SD_OVERRIDE_SAMPLES) ? ccl_fetch(sd, diffuse_samples) : kernel_data.integrator.diffuse_samples;
-		else if(CLOSURE_IS_BSDF_BSSRDF(sc->type))
+		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
+            if ( (ccl_fetch(sd, flag) & SD_OVERRIDE_SAMPLES) && ccl_fetch(sd, diffuse_samples) >= 0) {
+                num_samples = ccl_fetch(sd, diffuse_samples);
+            } else {
+                num_samples = kernel_data.integrator.diffuse_samples;
+            }
+
+		} else if(CLOSURE_IS_BSDF_BSSRDF(sc->type)) {
 			num_samples = 1;
-		else if(CLOSURE_IS_BSDF_GLOSSY(sc->type))
-			num_samples = (ccl_fetch(sd, flag) & SD_OVERRIDE_SAMPLES) ? ccl_fetch(sd, glossy_samples) : kernel_data.integrator.glossy_samples;
-		else
-			num_samples = (ccl_fetch(sd, flag) & SD_OVERRIDE_SAMPLES) ? ccl_fetch(sd, transmission_samples) : kernel_data.integrator.transmission_samples;
+		} else if(CLOSURE_IS_BSDF_GLOSSY(sc->type)) {
+            if ( (ccl_fetch(sd, flag) & SD_OVERRIDE_SAMPLES) && ccl_fetch(sd, glossy_samples) >= 0) {
+                num_samples = ccl_fetch(sd, glossy_samples);
+            } else {
+                num_samples = kernel_data.integrator.glossy_samples;
+            }
+
+		} else {
+            if ( (ccl_fetch(sd, flag) & SD_OVERRIDE_SAMPLES) && ccl_fetch(sd, transmission_samples) >= 0) {
+                num_samples = ccl_fetch(sd, transmission_samples);
+            } else {
+                num_samples = kernel_data.integrator.transmission_samples;
+            }
+
+        }
 
 		num_samples = ceil_to_int(num_samples_adjust*num_samples);
 
