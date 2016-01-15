@@ -52,6 +52,7 @@ public:
 	float2 dupli_uv;
 
     unsigned int light_linking, light_linking_prev;
+    unsigned int shadow_linking, shadow_linking_prev;
 
 	ParticleSystem *particle_system;
 	int particle_index;

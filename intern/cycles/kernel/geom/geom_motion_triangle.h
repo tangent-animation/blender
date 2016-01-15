@@ -319,7 +319,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg, ShaderD
  * time and do a ray intersection with the resulting triangle */
 
 ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 dir, float time, uint visibility, int object, int triAddr)
+	float3 P, float3 dir, float time, uint visibility, uint shadow_linking, int object, int triAddr)
 {
 	/* primitive index for vertex location lookup */
 	int prim = kernel_tex_fetch(__prim_index, triAddr);

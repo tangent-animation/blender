@@ -41,6 +41,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                             float difl,
                                             float extmax
 #endif
+                                            , unsigned int shadow_linking
                                             )
 {
 	/* todo:
@@ -269,16 +270,22 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #if defined(__KERNEL_DEBUG__)
 								isect->num_traversal_steps++;
 #endif
+								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
+                                if (tri_object != 0)
+                                    std::cout << "foobar";
+
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								if(triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr)) {
+								if(triangle_intersect(kg, &isect_precalc, isect, P, visibility, shadow_linking, object, primAddr)) {
 									/* shadow ray early termination */
 #if defined(__KERNEL_SSE2__)
-									if(visibility == PATH_RAY_SHADOW_OPAQUE)
-										return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+                                        return true;
+                                    }
 									tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
 #else
-									if(visibility == PATH_RAY_SHADOW_OPAQUE)
-										return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+                                        return true;
+                                    }
 #endif
 								}
 							}
@@ -291,15 +298,17 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								isect->num_traversal_steps++;
 #endif
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr)) {
+								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, shadow_linking, object, primAddr)) {
 									/* shadow ray early termination */
 #if defined(__KERNEL_SSE2__)
-									if(visibility == PATH_RAY_SHADOW_OPAQUE)
-										return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+                                        return true;
+                                    }
 									tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
 #else
-									if(visibility == PATH_RAY_SHADOW_OPAQUE)
-										return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+                                        return true;
+                                    }
 #endif
 								}
 							}
@@ -316,18 +325,20 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								bool hit;
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
-									hit = bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
+									hit = bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, lcg_state, difl, extmax);
 								else
-									hit = bvh_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
+									hit = bvh_curve_intersect(kg, isect, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, lcg_state, difl, extmax);
 								if(hit) {
 									/* shadow ray early termination */
 #if defined(__KERNEL_SSE2__)
-									if(visibility == PATH_RAY_SHADOW_OPAQUE)
-										return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+                                        return true;
+                                    }
 									tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
 #else
-									if(visibility == PATH_RAY_SHADOW_OPAQUE)
-										return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+                                        return true;
+                                    }
 #endif
 								}
 							}
@@ -413,6 +424,7 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          float difl,
                                          float extmax
 #endif
+                                         , unsigned int shadow_linking
                                          )
 {
 #ifdef __QBVH__
@@ -426,6 +438,7 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 		                                    difl,
 		                                    extmax
 #endif
+                                            , shadow_linking
 		                                    );
 	}
 	else
@@ -441,6 +454,7 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 		                                   difl,
 		                                   extmax
 #endif
+                                           , shadow_linking
 		                                   );
 	}
 }

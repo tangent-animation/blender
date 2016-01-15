@@ -22,6 +22,9 @@
  * directly primitives in the BVH with world space locations applied, and the object
  * ID is looked up afterwards. */
 
+#include <iostream>
+#include <ios>
+
 CCL_NAMESPACE_BEGIN
 
 /* Object attributes, for now a fixed size and contents */
@@ -225,6 +228,16 @@ ccl_device_inline unsigned int object_light_linking(KernelGlobals *kg, int objec
 	int offset = object*OBJECT_SIZE + OBJECT_LIGHT_LINKING;
 	float4 f = kernel_tex_fetch(__objects, offset);
 	return __float_as_uint(f.x);
+}
+
+ccl_device_inline unsigned int object_shadow_linking(KernelGlobals *kg, int object)
+{
+	if(object == OBJECT_NONE)
+		return 0;
+
+	int offset = object*OBJECT_SIZE + OBJECT_LIGHT_LINKING;
+	float4 f = kernel_tex_fetch(__objects, offset);
+	return __float_as_uint(f.y);
 }
 
 /* Pass ID number of object */

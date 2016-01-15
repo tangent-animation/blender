@@ -119,6 +119,9 @@ Light::Light()
     light_linking = 0;
     light_linking_prev = 0;
 
+    shadow_linking = 0;
+    shadow_linking_prev = 0;
+
 	spot_angle = M_PI_4_F;
 	spot_smooth = 0.0f;
 
@@ -582,6 +585,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 		float samples = __int_as_float(light->samples);
 		float max_bounces = __int_as_float(light->max_bounces);
         float light_linking = __uint_as_float(light->light_linking);
+        float shadow_linking = __uint_as_float(light->shadow_linking);
 
 		if(!light->cast_shadow)
 			shader_id &= ~SHADER_CAST_SHADOW;
@@ -616,7 +620,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), radius, invarea, 0.0f);
 			light_data[light_index*LIGHT_SIZE + 2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, 0.0f, 0.0f);
+			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, shadow_linking, 0.0f);
 		}
 		else if(light->type == LIGHT_DISTANT) {
 			shader_id &= ~SHADER_AREA_LIGHT;
@@ -637,7 +641,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), radius, cosangle, invarea);
 			light_data[light_index*LIGHT_SIZE + 2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, 0.0f, 0.0f);
+			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, shadow_linking, 0.0f);
 		}
 		else if(light->type == LIGHT_BACKGROUND) {
 			uint visibility = scene->background->visibility;
@@ -666,7 +670,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), 0.0f, 0.0f, 0.0f);
 			light_data[light_index*LIGHT_SIZE + 2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, 0.0f, 0.0f);
+			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, shadow_linking, 0.0f);
 		}
 		else if(light->type == LIGHT_AREA) {
 			float3 axisu = light->axisu*(light->sizeu*light->size);
@@ -684,7 +688,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), axisu.x, axisu.y, axisu.z);
 			light_data[light_index*LIGHT_SIZE + 2] = make_float4(invarea, axisv.x, axisv.y, axisv.z);
 			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, dir.x, dir.y, dir.z);
-			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, 0.0f, 0.0f);
+			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, shadow_linking, 0.0f);
 		}
 		else if(light->type == LIGHT_SPOT) {
 			shader_id &= ~SHADER_AREA_LIGHT;
@@ -704,7 +708,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), radius, invarea, spot_angle);
 			light_data[light_index*LIGHT_SIZE + 2] = make_float4(spot_smooth, dir.x, dir.y, dir.z);
 			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, 0.0f, 0.0f);
+			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, light_linking, shadow_linking, 0.0f);
 		}
 
 		light_index++;
@@ -725,6 +729,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 		float invarea = (area > 0.0f) ? 1.0f / area : 1.0f;
 		float3 dir = light->dir;
         float light_linking = __uint_as_float(light->light_linking);
+        float shadow_linking = __uint_as_float(light->shadow_linking);
 
 		dir = safe_normalize(dir);
 
@@ -732,7 +737,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 		light_data[light_index*LIGHT_SIZE + 1] = make_float4(area, axisu.x, axisu.y, axisu.z);
 		light_data[light_index*LIGHT_SIZE + 2] = make_float4(invarea, axisv.x, axisv.y, axisv.z);
 		light_data[light_index*LIGHT_SIZE + 3] = make_float4(-1, dir.x, dir.y, dir.z);
-		light_data[light_index*LIGHT_SIZE + 4] = make_float4(-1, light_linking, 0.0f, 0.0f);
+		light_data[light_index*LIGHT_SIZE + 4] = make_float4(-1, light_linking, shadow_linking, 0.0f);
 
 		light_index++;
 	}

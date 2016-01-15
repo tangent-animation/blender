@@ -46,6 +46,13 @@ typedef enum GroupLightLinking {
 	GP_LIGHT_LINK_EXCLUSIVE	= 2
 } GroupLightLinking;
 
+typedef enum GroupShadowLightLinking {
+	GP_SHADOW_LIGHT_LINK_COPY_LIGHT = 0,
+	GP_SHADOW_LIGHT_LINK_NONE = 1,
+	GP_SHADOW_LIGHT_LINK_INCLUSIVE = 2,
+	GP_SHADOW_LIGHT_LINK_EXCLUSIVE = 3
+} GroupShadowLightLinking;
+
 
 typedef struct GroupObject {
 	struct GroupObject *next, *prev;
@@ -67,7 +74,7 @@ typedef struct Group {
 	unsigned int layer;
 	float dupli_ofs[3];
     unsigned int light_linking;
-	char pad[4];
+    unsigned int shadow_linking;
 } Group;
 
 #endif  /* __DNA_GROUP_TYPES_H__ */

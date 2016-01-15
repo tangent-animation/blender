@@ -223,7 +223,7 @@ ccl_device_inline ssef transform_point_T3(const ssef t[3], const ssef &a)
 #ifdef __KERNEL_SSE2__
 /* Pass P and dir by reference to aligned vector */
 ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	const float3 &P, const float3 &dir, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
+	const float3 &P, const float3 &dir, uint visibility, uint shadow_linking, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
 #else
 ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float3 P, float3 dir, uint visibility, int object, int curveAddr, float time,int type, uint *lcg_state, float difl, float extmax)
@@ -622,7 +622,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 }
 
 ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 direction, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
+	float3 P, float3 direction, uint visibility, uint shadow_linking, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
 {
 	/* define few macros to minimize code duplication for SSE */
 #ifndef __KERNEL_SSE2__

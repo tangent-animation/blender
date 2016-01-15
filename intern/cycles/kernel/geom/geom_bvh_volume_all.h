@@ -34,7 +34,8 @@
 ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                             const Ray *ray,
                                             Intersection *isect_array,
-                                            const uint max_hits)
+                                            const uint max_hits,
+                                            unsigned int shadow_linking)
 {
 	/* todo:
 	 * - test if pushing distance on the stack helps (for non shadow rays)
@@ -218,7 +219,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
 									continue;
 								}
-								hit = triangle_intersect(kg, &isect_precalc, isect_array, P, visibility, object, primAddr);
+								hit = triangle_intersect(kg, &isect_precalc, isect_array, P, visibility, shadow_linking, object, primAddr);
 								if(hit) {
 									/* Move on to next entry in intersections array. */
 									isect_array++;
@@ -256,7 +257,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
 									continue;
 								}
-								hit = motion_triangle_intersect(kg, isect_array, P, dir, ray->time, visibility, object, primAddr);
+								hit = motion_triangle_intersect(kg, isect_array, P, dir, ray->time, visibility, shadow_linking, object, primAddr);
 								if(hit) {
 									/* Move on to next entry in intersections array. */
 									isect_array++;
@@ -297,9 +298,9 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									continue;
 								}
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
-									hit = bvh_cardinal_curve_intersect(kg, isect_array, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
+									hit = bvh_cardinal_curve_intersect(kg, isect_array, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, NULL, 0, 0);
 								else
-									hit = bvh_curve_intersect(kg, isect_array, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
+									hit = bvh_curve_intersect(kg, isect_array, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, NULL, 0, 0);
 								if(hit) {
 									/* Move on to next entry in intersections array. */
 									isect_array++;
@@ -430,14 +431,16 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 ccl_device_inline uint BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const Ray *ray,
                                          Intersection *isect_array,
-                                         const uint max_hits)
+                                         const uint max_hits,
+                                         unsigned int shadow_linking)
 {
 #ifdef __QBVH__
 	if(kernel_data.bvh.use_qbvh) {
 		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
 		                                    ray,
 		                                    isect_array,
-		                                    max_hits);
+		                                    max_hits,
+                                            shadow_linking);
 	}
 	else
 #endif
@@ -446,7 +449,8 @@ ccl_device_inline uint BVH_FUNCTION_NAME(KernelGlobals *kg,
 		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
 		                                   ray,
 		                                   isect_array,
-		                                   max_hits);
+		                                   max_hits,
+                                           shadow_linking);
 	}
 }
 

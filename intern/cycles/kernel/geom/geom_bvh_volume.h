@@ -33,7 +33,8 @@
 
 ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                             const Ray *ray,
-                                            Intersection *isect)
+                                            Intersection *isect,
+                                            unsigned int shadow_linking)
 {
 	/* todo:
 	 * - test if pushing distance on the stack helps (for non shadow rays)
@@ -213,7 +214,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
 									continue;
 								}
-								triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr);
+								triangle_intersect(kg, &isect_precalc, isect, P, visibility, shadow_linking, object, primAddr);
 							}
 							break;
 						}
@@ -228,7 +229,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
 									continue;
 								}
-								motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr);
+								motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, shadow_linking, object, primAddr);
 							}
 							break;
 						}
@@ -246,9 +247,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									continue;
 								}
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
-									bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
+									bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, NULL, 0, 0);
 								else
-									bvh_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
+									bvh_curve_intersect(kg, isect, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, NULL, 0, 0);
 							}
 							break;
 						}
@@ -336,13 +337,15 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const Ray *ray,
-                                         Intersection *isect)
+                                         Intersection *isect,
+                                         unsigned int shadow_linking)
 {
 #ifdef __QBVH__
 	if(kernel_data.bvh.use_qbvh) {
 		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
 		                                    ray,
-		                                    isect);
+		                                    isect,
+                                            shadow_linking);
 	}
 	else
 #endif
@@ -350,7 +353,8 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 		kernel_assert(kernel_data.bvh.use_qbvh == false);
 		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
 		                                   ray,
-		                                   isect);
+		                                   isect,
+                                           shadow_linking);
 	}
 }
 

@@ -37,6 +37,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                                              float difl,
                                              float extmax
 #endif
+                                             ,uint shadow_linking
                                              )
 {
 	/* TODO(sergey):
@@ -299,11 +300,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								isect->num_traversal_steps++;
 #endif
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								if(triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr)) {
+								if(triangle_intersect(kg, &isect_precalc, isect, P, visibility, shadow_linking, object, primAddr)) {
 									tfar = ssef(isect->t);
 									/* Shadow ray early termination. */
-									if(visibility == PATH_RAY_SHADOW_OPAQUE)
-										return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+                                        return true;
+                                    }
 								}
 							}
 							break;
@@ -315,11 +317,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								isect->num_traversal_steps++;
 #endif
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr)) {
+								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, shadow_linking, object, primAddr)) {
 									tfar = ssef(isect->t);
 									/* Shadow ray early termination. */
-									if(visibility == PATH_RAY_SHADOW_OPAQUE)
-										return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+                                        return true;
+                                    }
 								}
 							}
 							break;
@@ -335,14 +338,15 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								bool hit;
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
-									hit = bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
+									hit = bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, lcg_state, difl, extmax);
 								else
-									hit = bvh_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
+									hit = bvh_curve_intersect(kg, isect, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, lcg_state, difl, extmax);
 								if(hit) {
 									tfar = ssef(isect->t);
 									/* Shadow ray early termination. */
-									if(visibility == PATH_RAY_SHADOW_OPAQUE)
-										return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+                                        return true;
+                                    }
 								}
 							}
 							break;

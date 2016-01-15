@@ -41,7 +41,7 @@ CCL_NAMESPACE_BEGIN
 
 #define STACK_MAX_HITS 64
 
-ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow, ShaderData *source_sd)
+ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow, ShaderData *source_sd, uint shadow_linking)
 {
 	*shadow = make_float3(1.0f, 1.0f, 1.0f);
 
@@ -69,7 +69,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 			hits = (Intersection*)malloc(sizeof(Intersection)*(max_hits + 1));
 
 		uint num_hits;
-		blocked = scene_intersect_shadow_all(kg, ray, hits, max_hits, &num_hits);
+		blocked = scene_intersect_shadow_all(kg, ray, hits, max_hits, &num_hits, shadow_linking);
 
 		/* if no opaque surface found but we did find transparent hits, shade them */
 		if(!blocked && num_hits > 0) {
@@ -162,7 +162,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 	}
 	else {
 		Intersection isect;
-		blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f);
+		blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f, shadow_linking);
 	}
 
 #ifdef __VOLUME__
@@ -191,6 +191,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathStat
 #ifdef __SPLIT_KERNEL__
                                       , ShaderData *sd_mem, Intersection *isect_mem
 #endif
+                                      , uint shadow_linking
                                       )
 {
 	*shadow = make_float3(1.0f, 1.0f, 1.0f);
@@ -212,7 +213,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathStat
 	Intersection *isect = &isect_object;
 #endif
 
-	bool blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, isect, NULL, 0.0f, 0.0f);
+	bool blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, isect, NULL, 0.0f, 0.0f, shadow_linking);
 
 #ifdef __TRANSPARENT_SHADOWS__
 	if(blocked && kernel_data.integrator.transparent_shadows) {
@@ -228,7 +229,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathStat
 				if(bounce >= kernel_data.integrator.transparent_max_bounce)
 					return true;
 
-				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, isect, NULL, 0.0f, 0.0f))
+				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, isect, NULL, 0.0f, 0.0f, shadow_linking))
 				{
 #ifdef __VOLUME__
 					/* attenuation for last line segment towards light */

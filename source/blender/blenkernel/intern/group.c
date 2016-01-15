@@ -139,6 +139,7 @@ Group *BKE_group_add(Main *bmain, const char *name)
 	
 	group = BKE_libblock_alloc(bmain, ID_GR, name);
 	group->layer = (1 << 20) - 1;
+    group->shadow_linking = GP_SHADOW_LIGHT_LINK_COPY_LIGHT;
 	return group;
 }
 

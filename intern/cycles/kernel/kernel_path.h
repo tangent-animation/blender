@@ -60,7 +60,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 		/* intersect scene */
 		Intersection isect;
 		uint visibility = path_state_ray_visibility(kg, &state);
-		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f);
+		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f, 0x00000000);
 
 #ifdef __LAMP_MIS__
 		if(kernel_data.integrator.use_lamp_mis && !(state.flag & PATH_RAY_CAMERA)) {
@@ -105,6 +105,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 					&volume_ray, &volume_sd, &volume_segment, heterogeneous);
 
                 unsigned int light_linking = object_light_linking(kg, volume_sd.object);
+                unsigned int shadow_linking = object_shadow_linking(kg, volume_sd.object);
 
 				volume_segment.sampling_method = sampling_method;
 
@@ -120,7 +121,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 
 					/* direct light sampling */
 					kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
-						throughput, &state, L, all, &volume_ray, &volume_segment, light_linking);
+						throughput, &state, L, all, &volume_ray, &volume_segment, light_linking, shadow_linking);
 
 					/* indirect sample. if we use distance sampling and take just
 					 * one sample for direct and indirect light, we could share
@@ -155,11 +156,12 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 					kg, &state, &volume_sd, &volume_ray, L, &throughput, rng, heterogeneous);
 
                 unsigned int light_linking = object_light_linking(kg, volume_sd.object);
+                unsigned int shadow_linking = object_shadow_linking(kg, volume_sd.object);
 
 #ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* direct lighting */
-					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, L, light_linking);
+					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, L, light_linking, shadow_linking);
 
 					/* indirect light bounce */
 					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, L, &ray))
@@ -192,6 +194,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 #endif
 
         unsigned int light_linking = object_light_linking(kg, sd.object);
+        unsigned int shadow_linking = object_shadow_linking(kg, sd.object);
 
 		/* blurring of bsdf after bounces, for rays that have a small likelihood
 		 * of following this particular path (diffuse, rough glossy) */
@@ -263,7 +266,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 
 				state.flag |= PATH_RAY_AO;
 
-				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow, &sd)) {
+				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow, &sd, shadow_linking)) {
 					path_radiance_accum_ao(L, throughput, ao_alpha, ao_bsdf * ao_env, ao_shadow, state.bounce);
                 }
 
@@ -296,7 +299,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 #if defined(__EMISSION__) && defined(__BRANCHED_PATH__)
 		if(kernel_data.integrator.use_direct_light) {
 			bool all = kernel_data.integrator.sample_all_lights_indirect;
-			kernel_branched_path_surface_connect_light(kg, rng, &sd, &state, throughput, 1.0f, L, all, light_linking);
+			kernel_branched_path_surface_connect_light(kg, rng, &sd, &state, throughput, 1.0f, L, all, light_linking, shadow_linking);
 		}
 #endif
 
@@ -338,9 +341,11 @@ ccl_device void kernel_path_ao(KernelGlobals *kg, ShaderData *sd, PathRadiance *
         shader_setup_from_ao_env(kg, &sd_ao, &light_ray, 0, 0);
         float3 ao_env = shader_eval_ao_env(kg, &sd_ao, 0, SHADER_CONTEXT_MAIN);
 
+        unsigned int shadow_linking = object_shadow_linking(kg, sd->object);
+
         state->flag |= PATH_RAY_AO;
 
-		if(!shadow_blocked(kg, state, &light_ray, &ao_shadow, sd)) {
+		if(!shadow_blocked(kg, state, &light_ray, &ao_shadow, sd, shadow_linking)) {
 			path_radiance_accum_ao(L, throughput, ao_alpha, ao_bsdf * ao_env, ao_shadow, state->bounce);
         }
 
@@ -376,6 +381,7 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 		/* compute lighting with the BSDF closure */
 		for(int hit = 0; hit < num_hits; hit++) {
             unsigned int light_linking = object_light_linking(kg, bssrdf_sd[hit].object);
+            unsigned int shadow_linking = object_shadow_linking(kg, bssrdf_sd[hit].object);
 
 			float3 tp = *throughput;
 			PathState hit_state = *state;
@@ -383,7 +389,7 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 
 			hit_state.rng_offset += PRNG_BOUNCE_NUM;
 			
-			kernel_path_surface_connect_light(kg, rng, &bssrdf_sd[hit], tp, state, L, light_linking);
+			kernel_path_surface_connect_light(kg, rng, &bssrdf_sd[hit], tp, state, L, light_linking, shadow_linking);
 
 			if(kernel_path_surface_bounce(kg, rng, &bssrdf_sd[hit], &tp, &hit_state, L, &hit_ray)) {
 #ifdef __LAMP_MIS__
@@ -458,9 +464,9 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			lcg_state = lcg_state_init(rng, &state, 0x51633e2d);
 		}
 
-		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax);
+		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax, 0x00000000);
 #else
-		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f);
+		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f, 0x00000000);
 #endif
 
 #ifdef __KERNEL_DEBUG__
@@ -529,7 +535,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 					/* direct light sampling */
 					kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
-						throughput, &state, &L, all, &volume_ray, &volume_segment, light_linking);
+						throughput, &state, &L, all, &volume_ray, &volume_segment, light_linking, 0);
 
 					/* indirect sample. if we use distance sampling and take just
 					 * one sample for direct and indirect light, we could share
@@ -564,11 +570,12 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 					kg, &state, &volume_sd, &volume_ray, &L, &throughput, rng, heterogeneous);
 
                 unsigned int light_linking = object_light_linking(kg, volume_sd.object);
+                unsigned int shadow_linking = object_shadow_linking(kg, volume_sd.object);
 
 #ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* direct lighting */
-					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, &L, light_linking);
+					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, &L, light_linking, shadow_linking);
 
 					/* indirect light bounce */
 					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, &L, &ray))
@@ -608,6 +615,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 		shader_eval_surface(kg, &sd, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
 
         unsigned int light_linking = object_light_linking(kg, sd.object);
+        unsigned int shadow_linking = object_shadow_linking(kg, sd.object);
 
 		/* holdout */
 #ifdef __HOLDOUT__
@@ -686,7 +694,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 #endif
 
 		/* direct lighting */
-		kernel_path_surface_connect_light(kg, rng, &sd, throughput, &state, &L, light_linking);
+		kernel_path_surface_connect_light(kg, rng, &sd, throughput, &state, &L, light_linking, shadow_linking);
 
 		/* compute direct lighting and next bounce */
 		if(!kernel_path_surface_bounce(kg, rng, &sd, &throughput, &state, &L, &ray))

@@ -29,7 +29,8 @@
 
 ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                                              const Ray *ray,
-                                             Intersection *isect)
+                                             Intersection *isect,
+                                             unsigned int shadow_linking)
 {
 	/* TODO(sergey):
 	 * - Test if pushing distance on the stack helps.
@@ -230,7 +231,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									continue;
 								}
 								/* Intersect ray against primitive. */
-								triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr);
+								triangle_intersect(kg, &isect_precalc, isect, P, visibility, shadow_linking, object, primAddr);
 							}
 							break;
 						}
@@ -245,7 +246,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									continue;
 								}
 								/* Intersect ray against primitive. */
-								motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr);
+								motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, shadow_linking, object, primAddr);
 							}
 							break;
 						}
@@ -263,9 +264,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								}
 								/* Intersect ray against primitive. */
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
-									bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
+									bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, NULL, 0, 0);
 								else
-									bvh_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
+									bvh_curve_intersect(kg, isect, P, dir, visibility, shadow_linking, object, primAddr, ray->time, type, NULL, 0, 0);
 							}
 							break;
 						}

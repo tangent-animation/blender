@@ -47,6 +47,7 @@ public:
 	int map_resolution;
 
     unsigned int light_linking, light_linking_prev;
+    unsigned int shadow_linking, shadow_linking_prev;
 
 	float spot_angle;
 	float spot_smooth;

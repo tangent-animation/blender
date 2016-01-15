@@ -42,6 +42,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 	shader_eval_surface(kg, sd, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
 
     unsigned int light_linking = object_light_linking(kg, sd->object);
+    unsigned int shadow_linking = object_shadow_linking(kg, sd->object);
 
 	/* TODO, disable the closures we won't need */
 
@@ -72,7 +73,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 				path_radiance_accum_emission(&L_sample, throughput, emission, state.bounce);
 			}
 
-			kernel_path_surface_connect_light(kg, &rng, sd, throughput, &state, &L_sample, light_linking);
+			kernel_path_surface_connect_light(kg, &rng, sd, throughput, &state, &L_sample, light_linking, shadow_linking);
 
 			if(kernel_path_surface_bounce(kg, &rng, sd, &throughput, &state, &L_sample, &ray)) {
 #ifdef __LAMP_MIS__
@@ -117,7 +118,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 			if(kernel_data.integrator.use_direct_light) {
 				bool all = kernel_data.integrator.sample_all_lights_direct;
 				kernel_branched_path_surface_connect_light(kg, &rng,
-					sd, &state, throughput, 1.0f, &L_sample, all, light_linking);
+					sd, &state, throughput, 1.0f, &L_sample, all, light_linking, shadow_linking);
 			}
 #endif
 
