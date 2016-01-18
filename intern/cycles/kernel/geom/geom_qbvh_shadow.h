@@ -234,17 +234,21 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					while(primAddr < primAddr2) {
 						kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 
+#if defined(__LIGHT_LINKING__)
+                        if (!object_in_shadow_linking(kg,PATH_RAY_ALL_VISIBILITY,object,primAddr,shadow_linking)) {
+                            primAddr++;
+                            continue;
+                        }
+#endif
+
 						bool hit;
 
 						/* todo: specialized intersect functions which don't fill in
 						 * isect unless needed and check SD_HAS_TRANSPARENT_SHADOW?
 						 * might give a few % performance improvement */
-
-                        Intersection isect_array_old = *isect_array;
-
 						switch(p_type) {
 							case PRIMITIVE_TRIANGLE: {
-								hit = triangle_intersect(kg, &isect_precalc, isect_array, P, PATH_RAY_SHADOW, shadow_linking, object, primAddr);
+								hit = triangle_intersect(kg, &isect_precalc, isect_array, P, PATH_RAY_SHADOW, object, primAddr);
 								break;
 							}
 #if BVH_FEATURE(BVH_MOTION)

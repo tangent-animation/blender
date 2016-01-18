@@ -299,8 +299,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #if defined(__KERNEL_DEBUG__)
 								isect->num_traversal_steps++;
 #endif
+#if defined(__LIGHT_LINKING__)
+                                if (!object_in_shadow_linking(kg,visibility,object,primAddr,shadow_linking))
+                                    continue;
+#endif
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								if(triangle_intersect(kg, &isect_precalc, isect, P, visibility, shadow_linking, object, primAddr)) {
+								if(triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr)) {
 									tfar = ssef(isect->t);
 									/* Shadow ray early termination. */
 									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
@@ -315,6 +319,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 							for(; primAddr < primAddr2; primAddr++) {
 #if defined(__KERNEL_DEBUG__)
 								isect->num_traversal_steps++;
+#endif
+#if defined(__LIGHT_LINKING__)
+                                if (!object_in_shadow_linking(kg,visibility,object,primAddr,shadow_linking))
+                                    continue;
 #endif
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, shadow_linking, object, primAddr)) {
@@ -334,6 +342,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 							for(; primAddr < primAddr2; primAddr++) {
 #if defined(__KERNEL_DEBUG__)
 								isect->num_traversal_steps++;
+#endif
+#if defined(__LIGHT_LINKING__)
+                                if (!object_in_shadow_linking(kg,visibility,object,primAddr,shadow_linking))
+                                    continue;
 #endif
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								bool hit;

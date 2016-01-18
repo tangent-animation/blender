@@ -147,6 +147,7 @@ CCL_NAMESPACE_BEGIN
 #define __CAMERA_CLIPPING__
 #define __INTERSECTION_REFINE__
 #define __CLAMP_SAMPLE__
+#define __LIGHT_LINKING__
 
 #ifdef __KERNEL_SHADING__
 #define __SVM__

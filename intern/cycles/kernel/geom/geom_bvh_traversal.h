@@ -270,12 +270,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #if defined(__KERNEL_DEBUG__)
 								isect->num_traversal_steps++;
 #endif
-								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-                                if (tri_object != 0)
-                                    std::cout << "foobar";
-
+#if defined(__LIGHT_LINKING__)
+                                if (!object_in_shadow_linking(kg,visibility,object,primAddr,shadow_linking))
+                                    continue;
+#endif
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								if(triangle_intersect(kg, &isect_precalc, isect, P, visibility, shadow_linking, object, primAddr)) {
+								if(triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr)) {
 									/* shadow ray early termination */
 #if defined(__KERNEL_SSE2__)
 									if(visibility == PATH_RAY_SHADOW_OPAQUE) {
@@ -296,6 +296,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 							for(; primAddr < primAddr2; primAddr++) {
 #if defined(__KERNEL_DEBUG__)
 								isect->num_traversal_steps++;
+#endif
+#if defined(__LIGHT_LINKING__)
+                                if (!object_in_shadow_linking(kg,visibility,object,primAddr,shadow_linking))
+                                    continue;
 #endif
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, shadow_linking, object, primAddr)) {
@@ -321,6 +325,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 							for(; primAddr < primAddr2; primAddr++) {
 #if defined(__KERNEL_DEBUG__)
 								isect->num_traversal_steps++;
+#endif
+#if defined(__LIGHT_LINKING__)
+                                if (!object_in_shadow_linking(kg,visibility,object,primAddr,shadow_linking))
+                                    continue;
 #endif
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								bool hit;

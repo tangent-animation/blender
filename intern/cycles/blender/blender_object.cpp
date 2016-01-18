@@ -628,16 +628,10 @@ void BlenderSync::sync_light_linking()
 
     // Initialize all object light linking flags
     foreach(Object *ob, scene->objects) {
-
-        std::cout << "Obj: " << std::hex << ob << "  " << ob->light_linking << ":" << ob->shadow_linking << std::endl;
-
         if (ob->light_linking_prev != ob->light_linking || ob->shadow_linking_prev != ob->shadow_linking)
             ob->tag_update(scene);
     }
     foreach(Light *li, scene->lights) {
-
-        std::cout << "Lit: " << std::hex << li << "  " << li->light_linking << ":" << li->shadow_linking << std::endl;
-
         if (li->light_linking_prev != li->light_linking || li->shadow_linking_prev != li->shadow_linking)
             li->tag_update(scene);
     }

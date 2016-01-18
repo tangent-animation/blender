@@ -108,7 +108,6 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
                                           Intersection *isect,
                                           float3 P,
                                           uint visibility,
-                                          uint shadow_linking,
                                           int object,
                                           int triAddr)
 {
@@ -167,22 +166,6 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	{
 		return false;
 	}
-
-    /* ignore objects when shadow linking is used */
-    if (visibility & PATH_RAY_SHADOW) {
-        uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, triAddr): object;
-
-        int offset = tri_object*OBJECT_SIZE + OBJECT_LIGHT_LINKING;
-        float4 f = kernel_tex_fetch(__objects, offset);
-        unsigned int object_shadow_linking = __float_as_uint(f.y);
-
-        bool inl =  ((shadow_linking & object_shadow_linking) != 0) || (shadow_linking == 0x00000000 && object_shadow_linking == 0x00FFFFFF);
-
-        if (!inl)
-            return false;
-//        else
-//            std::cout << "Foobar";
-    }
 
 #ifdef __VISIBILITY_FLAG__
 	/* visibility flag test. we do it here under the assumption
