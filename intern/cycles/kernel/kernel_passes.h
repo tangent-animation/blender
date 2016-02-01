@@ -79,8 +79,6 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg, ccl_global fl
 		   kernel_data.film.pass_alpha_threshold == 0.0f ||
 		   average(shader_bsdf_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold)
 		{
-            std::cout << "Sample " << sample << "  " << camera_distance(kg, ccl_fetch(sd, P)) << std::endl;
-
 			if(sample == 0) {
 				if(flag & PASS_DEPTH) {
 					float depth = camera_distance(kg, ccl_fetch(sd, P));
