@@ -434,44 +434,19 @@ end_loop2:
         out_color[3] = color_pixel[3];
     }
 
-    // Now we have an estimated color. Lets try to estimate the alpha value of the sample.
-    avg_color[0] = avg_color[0] / num_avg_color;
-    avg_color[1] = avg_color[1] / num_avg_color;
-    avg_color[2] = avg_color[2] / num_avg_color;
-
-    other_avg_color[0] = other_avg_color[0] / other_num_avg_color;
-    other_avg_color[1] = other_avg_color[1] / other_num_avg_color;
-    other_avg_color[2] = other_avg_color[2] / other_num_avg_color;
-
-    // Prevent division by zero, give up
-    if (avg_color[0] == other_avg_color[0] &&
-        avg_color[0] == other_avg_color[0] &&
-        avg_color[0] == other_avg_color[0]) {
-
-        out_color[0] = color_pixel[0];
-        out_color[1] = color_pixel[1];
-        out_color[2] = color_pixel[2];
-        out_color[3] = color_pixel[3];
-    }
-
-    // Estimate alphas for each channel and average
-    float a0 = (color_pixel[0] - other_avg_color[0]) / (avg_color[0] - other_avg_color[0]);
-    float a1 = (color_pixel[1] - other_avg_color[1]) / (avg_color[1] - other_avg_color[1]);
-    float a2 = (color_pixel[2] - other_avg_color[2]) / (avg_color[2] - other_avg_color[2]);
-
-    out_color[3] = (a0 + a1 + a2) / 3.0F;
-    out_color[3] = std::max(std::min(1.0F, out_color[3]), 0.0F);    // Clamp 0-1
-
-
-//    // Final value
-//    if (num_avg_color > 0) {
-//        out_color[0] = avg_color[0] / num_avg_color;
-//        out_color[1] = avg_color[1] / num_avg_color;
-//        out_color[2] = avg_color[2] / num_avg_color;
-//        out_color[3] = avg_color[3] / num_avg_color;
-//    } else {
-//        int index_col = INDEX_COL(x,y);
-//        float *color_pixel = color->getBuffer() + index_col;
+//    // Now we have an estimated color. Lets try to estimate the alpha value of the sample.
+//    avg_color[0] = avg_color[0] / num_avg_color;
+//    avg_color[1] = avg_color[1] / num_avg_color;
+//    avg_color[2] = avg_color[2] / num_avg_color;
+//
+//    other_avg_color[0] = other_avg_color[0] / other_num_avg_color;
+//    other_avg_color[1] = other_avg_color[1] / other_num_avg_color;
+//    other_avg_color[2] = other_avg_color[2] / other_num_avg_color;
+//
+//    // Prevent division by zero, give up
+//    if (avg_color[0] == other_avg_color[0] &&
+//        avg_color[0] == other_avg_color[0] &&
+//        avg_color[0] == other_avg_color[0]) {
 //
 //        out_color[0] = color_pixel[0];
 //        out_color[1] = color_pixel[1];
@@ -479,10 +454,30 @@ end_loop2:
 //        out_color[3] = color_pixel[3];
 //    }
 //
-//    out_color[0] = 0.0F;
-//    out_color[1] = 0.0F;
-//    out_color[2] = 0.0F;
-//    out_color[3] = 0.0F;
+//    // Estimate alphas for each channel and average
+//    float a0 = (color_pixel[0] - other_avg_color[0]) / (avg_color[0] - other_avg_color[0]);
+//    float a1 = (color_pixel[1] - other_avg_color[1]) / (avg_color[1] - other_avg_color[1]);
+//    float a2 = (color_pixel[2] - other_avg_color[2]) / (avg_color[2] - other_avg_color[2]);
+//
+//    out_color[3] = (a0 + a1 + a2) / 3.0F;
+//    out_color[3] = std::max(std::min(1.0F, out_color[3]), 0.0F);    // Clamp 0-1
+//
+
+    // Final value
+    if (num_avg_color > 0) {
+        out_color[0] = avg_color[0] / num_avg_color;
+        out_color[1] = avg_color[1] / num_avg_color;
+        out_color[2] = avg_color[2] / num_avg_color;
+        out_color[3] = avg_color[3] / num_avg_color;
+    } else {
+        int index_col = INDEX_COL(x,y);
+        float *color_pixel = color->getBuffer() + index_col;
+
+        out_color[0] = color_pixel[0];
+        out_color[1] = color_pixel[1];
+        out_color[2] = color_pixel[2];
+        out_color[3] = color_pixel[3];
+    }
 
 }
 
@@ -526,10 +521,10 @@ void MotionBlur2DOperation::generateMotionBlurDeep(float *data, MemoryBuffer *co
             int ym = y/multisample;
 
             // Record sample
-            float color_pixel[4];
-            estimate_color_at_pixel(xm, ym, color, objid, color_pixel);
-//            int index_col = INDEX_COL(xm,ym);
-//            float *color_pixel = color->getBuffer() + index_col;
+//            float color_pixel[4];
+//            estimate_color_at_pixel(xm, ym, color, objid, color_pixel);
+            int index_col = INDEX_COL(xm,ym);
+            float *color_pixel = color->getBuffer() + index_col;
 
             // Skip full transparent pixels
             if (color_pixel[3] == 0.0f)
@@ -544,14 +539,41 @@ void MotionBlur2DOperation::generateMotionBlurDeep(float *data, MemoryBuffer *co
             // Calculate a motion vector and depth
             float z = *depth_pixel;
 
-            int x0 = x + speed_pixel[0] * forward_factor;
-            int y0 = y + speed_pixel[1] * forward_factor;
-            int x1 = x - speed_pixel[0] * backwards_factor;
-            int y1 = y - speed_pixel[1] * backwards_factor;
+            int x0 = floor(x + speed_pixel[0] * forward_factor);
+            int y0 = floor(y + speed_pixel[1] * forward_factor);
+            int x1 = ceil(x - speed_pixel[0] * backwards_factor);
+            int y1 = ceil(y - speed_pixel[1] * backwards_factor);
 
             // Build blur samples
             line (x0, y0, x1, y1, line_samples, &num_line_samples);
             float weight = 1.0f / (num_line_samples * multisample2);
+
+            // Clamp alpha for small objects
+            int num_samples_inside = 0;
+            int num_samples_outside = 0;
+
+            for (int s = 0; s < num_line_samples; ++s) {
+                int xs = line_samples[s].x;
+                int ys = line_samples[s].y;
+
+                // If outside image, ignore
+                if (xs < 0 || xs >= width_multisample || ys < 0 || ys >= height_multisample) {
+                    ++num_samples_outside;
+
+                } else {
+                    int indexi_val = INDEX_VAL(xs,ys);
+                    float *objidi_pixel = objid->getBuffer() + indexi_val;
+
+                    if (*objidi_pixel == *objid_pixel) {
+                        ++num_samples_inside;
+                    } else {
+                        ++num_samples_outside;
+                    }
+                }
+            }
+
+            float inside_alpha = (float)num_samples_inside / (float)(num_samples_inside + num_samples_outside);
+            inside_alpha = std::max(0.0f,std::min(1.0f, inside_alpha * 2.0f));
 
             for (int s = 0; s < num_line_samples; ++s) {
                 int xs = line_samples[s].x;
@@ -568,6 +590,13 @@ void MotionBlur2DOperation::generateMotionBlurDeep(float *data, MemoryBuffer *co
                     alpha = (s == 0) ? color_pixel[3] : 0.0F;
                 } else {
                     alpha = color_pixel[3];
+                }
+
+                // Lower alpha for thinner objects outside of the object
+                int indexi_val = INDEX_VAL(xs,ys);
+                float *objidi_pixel = objid->getBuffer() + indexi_val;
+                if (*objidi_pixel != *objid_pixel) {
+                    alpha *= inside_alpha;
                 }
 
                 // If outside image, ignore
