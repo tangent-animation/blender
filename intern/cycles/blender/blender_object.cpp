@@ -476,7 +476,7 @@ void BlenderSync::sync_light_linking()
         ob->light_linking = 0x00000000;
 
         ob->shadow_linking_prev = ob->shadow_linking;
-        ob->shadow_linking = 0x00000000;
+        ob->shadow_linking = 0x00FFFFFF;
     }
     foreach(Light *li, scene->lights) {
         li->light_linking_prev = li->light_linking;
@@ -591,7 +591,7 @@ void BlenderSync::sync_light_linking()
 
                         Object *object = object_map.find(key);
                         if (object) {
-                            object->shadow_linking = object->shadow_linking | bit;
+                            object->shadow_linking = (object->shadow_linking == 0x00FFFFFF) ? bit : (object->shadow_linking | bit);
                         }
 
                         Light *light = light_map.find(key);
@@ -606,7 +606,7 @@ void BlenderSync::sync_light_linking()
 
                 Object *object = object_map.find(key);
                 if (object) {
-                    object->shadow_linking = object->shadow_linking | bit;
+                    object->shadow_linking = (object->shadow_linking == 0x00FFFFFF) ? bit : (object->shadow_linking | bit);
                 }
 
                 Light *light = light_map.find(key);
