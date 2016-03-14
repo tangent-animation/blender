@@ -250,8 +250,7 @@ ccl_device bool object_in_shadow_linking(KernelGlobals *kg, int visibility, int 
         float4 f = kernel_tex_fetch(__objects, offset);
         unsigned int object_shadow_linking = __float_as_uint(f.y);
 
-        if ((shadow_linking & object_shadow_linking) == 0)
-            return false;
+        return ((shadow_linking & object_shadow_linking) != 0) || (shadow_linking == 0x00000000 && object_shadow_linking == 0x00FFFFFF);
     }
 
     return true;
