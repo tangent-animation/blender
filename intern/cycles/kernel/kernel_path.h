@@ -53,7 +53,8 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
-	float3 throughput, int num_samples, PathState state, PathRadiance *L)
+	float3 throughput, int num_samples, PathState state, PathRadiance *L,
+    unsigned int light_linking)
 {
 	/* path iteration */
 	for(;;) {
@@ -78,7 +79,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 			/* intersect with lamp */
 			float3 emission;
 
-			if(indirect_lamp_emission(kg, &state, &light_ray, &emission))
+			if(indirect_lamp_emission(kg, &state, &light_ray, &emission, light_linking))
 				path_radiance_accum_emission(L, throughput, emission, state.bounce);
 		}
 #endif
@@ -412,7 +413,7 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 				}
 #endif
 
-				kernel_path_indirect(kg, rng, hit_ray, tp, state->num_samples, hit_state, L);
+				kernel_path_indirect(kg, rng, hit_ray, tp, state->num_samples, hit_state, L, light_linking);
 
 				/* for render passes, sum and reset indirect light pass variables
 				 * for the next samples */
@@ -464,9 +465,9 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			lcg_state = lcg_state_init(rng, &state, 0x51633e2d);
 		}
 
-		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax, 0x00000000);
+		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax, 0x00000000/*TODO:What goes here*/);
 #else
-		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f, 0x00000000);
+		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f, 0x00000000/*TODO:What goes here*/);
 #endif
 
 #ifdef __KERNEL_DEBUG__
@@ -493,7 +494,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			/* intersect with lamp */
 			float3 emission;
 
-			if(indirect_lamp_emission(kg, &state, &light_ray, &emission))
+			if(indirect_lamp_emission(kg, &state, &light_ray, &emission, 0x00000000/*TODO:What goes here*/))
 				path_radiance_accum_emission(&L, throughput, emission, state.bounce);
 		}
 #endif

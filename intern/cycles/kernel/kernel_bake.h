@@ -80,7 +80,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 				state.ray_t = 0.0f;
 #endif
 				/* compute indirect light */
-				kernel_path_indirect(kg, &rng, ray, throughput, 1, state, &L_sample);
+				kernel_path_indirect(kg, &rng, ray, throughput, 1, state, &L_sample, light_linking);
 
 				/* sum and reset indirect light pass variables for the next samples */
 				path_radiance_sum_indirect(&L_sample);
@@ -124,7 +124,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 			/* indirect light */
 			kernel_branched_path_surface_indirect_light(kg, &rng,
-				sd, throughput, 1.0f, &state, &L_sample);
+				sd, throughput, 1.0f, &state, &L_sample, light_linking);
 		}
 	}
 #endif

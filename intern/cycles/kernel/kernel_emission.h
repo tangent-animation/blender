@@ -195,6 +195,7 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *st
 #ifdef __SPLIT_KERNEL__
                                                 ,ShaderData *sd
 #endif
+                                                ,unsigned int light_linking
                                                 )
 {
 	bool hit_lamp = false;
@@ -202,6 +203,11 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *st
 	*emission = make_float3(0.0f, 0.0f, 0.0f);
 
 	for(int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
+
+        if (!light_in_light_linking(kg, lamp, light_linking))
+            continue;
+
+
 		LightSample ls;
 
 		if(!lamp_light_eval(kg, lamp, ray->P, ray->D, ray->t, &ls))

@@ -71,7 +71,7 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathR
 /* bounce off surface and integrate indirect light */
 ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGlobals *kg,
 	RNG *rng, ShaderData *sd, float3 throughput, float num_samples_adjust,
-	PathState *state, PathRadiance *L)
+	PathState *state, PathRadiance *L, unsigned int light_linking)
 {
 	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		const ShaderClosure *sc = &ccl_fetch(sd, closure)[i];
@@ -122,7 +122,7 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 			if(!kernel_branched_path_surface_bounce(kg, &bsdf_rng, sd, sc, j, num_samples, &tp, &ps, L, &bsdf_ray))
 				continue;
 
-			kernel_path_indirect(kg, rng, bsdf_ray, tp*num_samples_inv, num_samples, ps, L);
+			kernel_path_indirect(kg, rng, bsdf_ray, tp*num_samples_inv, num_samples, ps, L, light_linking);
 
 			/* for render passes, sum and reset indirect light pass variables
 			 * for the next samples */
@@ -204,7 +204,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				/* indirect light */
 				kernel_branched_path_surface_indirect_light(kg, rng,
 					&bssrdf_sd[hit], throughput, num_samples_inv,
-					&hit_state, L);
+					&hit_state, L, light_linking);
 			}
 		}
 	}
@@ -324,7 +324,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 					kernel_assert(result == VOLUME_PATH_SCATTERED);
 
 					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray)) {
-						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
+						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L, light_linking);
 
 						/* for render passes, sum and reset indirect light pass variables
 						 * for the next samples */
@@ -495,7 +495,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 			/* indirect light */
 			kernel_branched_path_surface_indirect_light(kg, rng,
-				&sd, throughput, 1.0f, &hit_state, &L);
+				&sd, throughput, 1.0f, &hit_state, &L, light_linking);
 
 			/* continue in case of transparency */
 			throughput *= shader_bsdf_transparency(kg, &sd);
