@@ -579,31 +579,32 @@ void MotionBlur2DOperation::generateMotionBlurDeep(float *data, MemoryBuffer *co
                 int xs = line_samples[s].x;
                 int ys = line_samples[s].y;
 
-                // Alpha ramp
-                float alpha;
-                if (num_line_samples > 2) {
-                    // Triangle ramp
-                    alpha = (float) s / (float) (num_line_samples-1);
-                    alpha = (alpha < 0.5f) ? (alpha*2.0f) : (1.0f - (alpha-0.5f)*2.0f);
-                    alpha *= color_pixel[3];
-                } else if (num_line_samples == 2) {
-                    alpha = (s == 0) ? color_pixel[3] : 0.0F;
-                } else {
-                    alpha = color_pixel[3];
-                }
-
-                // Lower alpha for thinner objects outside of the object
-                int indexi_val = INDEX_VAL(xs,ys);
-                float *objidi_pixel = objid->getBuffer() + indexi_val;
-                if (*objidi_pixel != *objid_pixel) {
-                    alpha *= inside_alpha;
-                }
-
                 // If outside image, ignore
                 if (xs < 0 || xs >= width_multisample || ys < 0 || ys >= height_multisample) {
                     // Do nothing
 
                 } else {
+
+                    // Alpha ramp
+                    float alpha;
+                    if (num_line_samples > 2) {
+                        // Triangle ramp
+                        alpha = (float) s / (float) (num_line_samples-1);
+                        alpha = (alpha < 0.5f) ? (alpha*2.0f) : (1.0f - (alpha-0.5f)*2.0f);
+                        alpha *= color_pixel[3];
+                    } else if (num_line_samples == 2) {
+                        alpha = (s == 0) ? color_pixel[3] : 0.0F;
+                    } else {
+                        alpha = color_pixel[3];
+                    }
+
+                    // Lower alpha for thinner objects outside of the object
+                    int indexi_val = INDEX_VAL(xs,ys);
+                    float *objidi_pixel = objid->getBuffer() + indexi_val;
+                    if (*objidi_pixel != *objid_pixel) {
+                        alpha *= inside_alpha;
+                    }
+
                     int xm_s = xs/multisample;
                     int ym_s = ys/multisample;
 
