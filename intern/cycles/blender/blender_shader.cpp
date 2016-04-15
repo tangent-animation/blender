@@ -33,6 +33,8 @@ typedef map<void*, ShaderInput*> PtrInputMap;
 typedef map<void*, ShaderOutput*> PtrOutputMap;
 typedef map<std::string, ProxyNode*> ProxyMap;
 
+void CurveToFilledTriangles(Curve *cu);
+
 /* Find */
 
 void BlenderSync::find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader)
@@ -601,6 +603,29 @@ static ShaderNode *add_node(Scene *scene,
 		get_tex_mapping(&image->tex_mapping, b_image_node.texture_mapping());
 		node = image;
 	}
+	else if(b_node.is_a(&RNA_ShaderNodeTexCurve)) {
+        // TODO: TEXCURVE
+		BL::ShaderNodeTexCurve b_curve_node(b_node);
+        BL::Curve b_curve(b_curve_node.object());
+		CurveTextureNode *tex = new CurveTextureNode();
+
+        if (b_curve) {
+            // ASSERT(b_curve.is_a(&RNA_Curve));
+//            ASSERT(b_curve_node.object().data().is_a(&RNA_Curve));
+
+            Curve *cu = (Curve *)b_curve.ptr.data;
+            CurveToFilledTriangles(cu);
+
+//            curve_to_displist(cu, &nubase, dispbase, true, true);
+//
+//            // Do something
+//
+//			BKE_displist_free(&dispbase);
+        }
+
+		get_tex_mapping(&tex->tex_mapping, b_curve_node.texture_mapping());
+		node = tex;
+    }
 	else if(b_node.is_a(&RNA_ShaderNodeTexEnvironment)) {
 		BL::ShaderNodeTexEnvironment b_env_node(b_node);
 		BL::Image b_image(b_env_node.image());

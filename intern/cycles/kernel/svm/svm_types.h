@@ -125,7 +125,8 @@ typedef enum NodeType {
 	NODE_TANGENT,
 	NODE_NORMAL_MAP,
 	NODE_HAIR_INFO,
-	NODE_UVMAP
+	NODE_UVMAP,
+    NODE_TEX_CURVE  // TODO: TEXCURVE
 } NodeType;
 
 typedef enum NodeAttributeType {

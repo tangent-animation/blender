@@ -165,6 +165,7 @@ CCL_NAMESPACE_END
 #include "svm_magic.h"
 #include "svm_mapping.h"
 #include "svm_normal.h"
+#include "svm_poly.h"
 #include "svm_wave.h"
 #include "svm_math.h"
 #include "svm_mix.h"
@@ -264,6 +265,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 #  ifdef __TEXTURES__
 			case NODE_TEX_IMAGE:
 				svm_node_tex_image(kg, sd, stack, node);
+				break;
+			case NODE_TEX_CURVE:    // TODO: TEXCURVE
+				svm_node_tex_curve(kg, sd, stack, node);
 				break;
 			case NODE_TEX_IMAGE_BOX:
 				svm_node_tex_image_box(kg, sd, stack, node);

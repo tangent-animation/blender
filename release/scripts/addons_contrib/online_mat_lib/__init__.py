@@ -116,7 +116,9 @@ node_types = {
         'MATERIAL_EXT': 'ShaderNodeExtendedMaterial',
         'TEX_MUSGRAVE': 'ShaderNodeTexMusgrave',
         'NORMAL_MAP': 'ShaderNodeNormalMap',
-        'RGBTOBW': 'ShaderNodeRGBToBW'},
+        'RGBTOBW': 'ShaderNodeRGBToBW',
+        'TEX_CURVE': 'ShaderNodeTexCurve'},
+
     'COMPOSITING': {
         'KEYING': 'CompositorNodeKeying',
         'TRANSFORM': 'CompositorNodeTransform',

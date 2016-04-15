@@ -200,7 +200,11 @@ typedef struct OceanTex {
 	int pad;
 	
 } OceanTex;
-	
+
+//typedef struct CurveTex { // TODO: TEXCURVE
+//	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
+//} CurveTex;
+
 typedef struct Tex {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -320,6 +324,7 @@ typedef struct ColorMapping {
 #define TEX_POINTDENSITY	14
 #define TEX_VOXELDATA		15
 #define TEX_OCEAN		16
+#define TEX_CURVE       17
 
 /* musgrave stype */
 #define TEX_MFRACTAL		0

@@ -364,6 +364,66 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_image_texture");
 }
 
+/* Curve Texture */
+
+CurveTextureNode::CurveTextureNode()
+: TextureNode("curve_texture")
+{
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_UV);
+	add_input("FillColor", SHADER_SOCKET_COLOR);
+	add_input("BackgroundColor", SHADER_SOCKET_COLOR);
+	add_output("Color", SHADER_SOCKET_COLOR);
+
+    // TODO: TEXCURVE
+}
+
+CurveTextureNode::~CurveTextureNode()
+{
+// 	if(image_manager)
+// 		image_manager->remove_image(filename, builtin_data, interpolation);
+}
+
+ShaderNode *CurveTextureNode::clone() const
+{
+	CurveTextureNode *node = new CurveTextureNode(*this);
+	return node;
+}
+
+void CurveTextureNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *vector_in = input("Vector");
+	ShaderInput *fill_color_in = input("FillColor");
+	ShaderInput *background_color_in = input("BackgroundColor");
+	ShaderOutput *color_out = output("Color");
+
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+    compiler.stack_assign(fill_color_in);
+    compiler.stack_assign(background_color_in);
+    compiler.stack_assign(vector_in);
+
+    int vector_offset = vector_in->stack_offset;
+
+    if(!tex_mapping.skip()) {
+        vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+        tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+    }
+
+
+    compiler.add_node(NODE_TEX_CURVE,
+				compiler.encode_uchar4(vector_offset, fill_color_in->stack_offset, background_color_in->stack_offset, color_out->stack_offset),
+				0,
+                0);
+
+    if(vector_offset != vector_in->stack_offset)
+        compiler.stack_clear_offset(vector_in->type, vector_offset);
+
+}
+
+void CurveTextureNode::compile(OSLCompiler& compiler)
+{
+}
+
 /* Environment Texture */
 
 static ShaderEnum env_projection_init()

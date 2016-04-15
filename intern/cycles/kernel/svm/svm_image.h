@@ -505,8 +505,30 @@ ccl_device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, floa
 	if(stack_valid(out_offset))
 		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
 	if(stack_valid(alpha_offset))
-		stack_store_float(stack, alpha_offset, f.w);
+		stack_store_float(stack, alpha_offset, f.w)  ;
 }
+
+ccl_device void svm_node_tex_curve(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+{
+    // TODO: TEXCURVE
+    uint co_offset, fill_in_offset, background_in_offset, out_offset;
+    decode_node_uchar4(node.y, &co_offset, &fill_in_offset, &background_in_offset, &out_offset);
+
+    float3 co = stack_load_float3(stack, co_offset);
+    float3 fill_color = stack_load_float3(stack, fill_in_offset);
+    float3 background_color = stack_load_float3(stack, background_in_offset);
+    float4 f;
+
+    if (co.x < 0.6 && co.x > 0.4 && co.y < 0.6 && co.y > 0.4) {
+        f = make_float4(fill_color.x, fill_color.y, fill_color.z, 1.0);
+    } else {
+        f = make_float4(background_color.x, background_color.y, background_color.z, 1.0);
+    }
+
+	if(stack_valid(out_offset))
+		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
+}
+
 
 CCL_NAMESPACE_END
 

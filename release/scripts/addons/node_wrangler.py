@@ -142,7 +142,8 @@ shaders_texture_nodes_props = (
     ('ShaderNodeTexGradient', 'TEX_GRADIENT', 'Gradient'),
     ('ShaderNodeTexMagic', 'TEX_MAGIC', 'Magic'),
     ('ShaderNodeTexChecker', 'TEX_CHECKER', 'Checker'),
-    ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick')
+    ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick'),
+    ('ShaderNodeTexCurve', 'TEX_CURVE', 'Curve')
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.

@@ -782,6 +782,153 @@ void ExportCurveTriangleVcol(ParticleCurveData *CData, int vert_offset, int reso
 	}
 }
 
+/* Curve to triangles for curve texture */
+
+void CurveToFilledTriangles(Curve *cu) {
+	Nurb *nu;
+	BezTriple *bezt, *prevbezt;
+	BPoint *bp;
+	float *data;
+	int a, len, resolu;
+
+    ListBase *nubase = BKE_curve_nurbs_get(cu);
+    std::vector<float3> points;
+
+	nu = (Nurb *) nubase->first;
+	while (nu) {
+		if (nu->hide == 0) {
+			if (cu->resolu_ren != 0)
+				resolu = cu->resolu_ren;
+			else
+				resolu = nu->resolu;
+
+			if (!BKE_nurb_check_valid_u(nu)) {
+				/* pass */
+			} else if (nu->type == CU_BEZIER) {
+				/* count */
+				len = 0;
+				a = nu->pntsu - 1;
+				if (nu->flagu & CU_NURB_CYCLIC) a++;
+
+				prevbezt = nu->bezt;
+				bezt = prevbezt + 1;
+				while (a--) {
+					if (a == 0 && (nu->flagu & CU_NURB_CYCLIC))
+						bezt = nu->bezt;
+
+					if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT)
+						len++;
+					else
+						len += resolu;
+
+					if (a == 0 && (nu->flagu & CU_NURB_CYCLIC) == 0)
+						len++;
+
+					prevbezt = bezt;
+					bezt++;
+				}
+
+                points.reserve(len + 1);
+
+//				dl = MEM_callocN(sizeof(DispList), "makeDispListbez");
+//				/* len+1 because of 'forward_diff_bezier' function */
+//				dl->verts = MEM_mallocN((len + 1) * sizeof(float[3]), "dlverts");
+//				BLI_addtail(dispbase, dl);
+//				dl->parts = 1;
+//				dl->nr = len;
+//				dl->col = nu->mat_nr;
+//				dl->charidx = nu->charidx;
+//
+//				data = dl->verts;
+
+				/* check that (len != 2) so we don't immediately loop back on ourselves */
+				if (nu->flagu & CU_NURB_CYCLIC && (len != 2)) {
+					a = nu->pntsu;
+				} else {
+					a = nu->pntsu - 1;
+				}
+
+				prevbezt = nu->bezt;
+				bezt = prevbezt + 1;
+
+				while (a--) {
+					if (a == 0 && dl->type == DL_POLY)
+						bezt = nu->bezt;
+
+					if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT) {
+                        points.push_back(prevbezt->vec[1])
+					}
+					else {
+						int j;
+						for (j = 0; j < 3; j++) {
+							BKE_curve_forward_diff_bezier(prevbezt->vec[1][j],
+							                              prevbezt->vec[2][j],
+							                              bezt->vec[0][j],
+							                              bezt->vec[1][j],
+							                              data + j, resolu, 3 * sizeof(float));
+						}
+
+						data += 3 * resolu;
+					}
+
+					if (a == 0 && dl->type == DL_SEGM) {
+						points.push_back(bezt->vec[1]);
+					}
+
+					prevbezt = bezt;
+					bezt++;
+				}
+			}
+			else if (nu->type == CU_NURBS) {
+				len = (resolu * SEGMENTSU(nu));
+
+//				dl = MEM_callocN(sizeof(DispList), "makeDispListsurf");
+//				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
+//				BLI_addtail(dispbase, dl);
+//				dl->parts = 1;
+//
+//				dl->nr = len;
+//				dl->col = nu->mat_nr;
+//				dl->charidx = nu->charidx;
+
+				data = dl->verts;
+				if (nu->flagu & CU_NURB_CYCLIC)
+					dl->type = DL_POLY;
+				else dl->type = DL_SEGM;
+				BKE_nurb_makeCurve(nu, data, NULL, NULL, NULL, resolu, 3 * sizeof(float));
+			}
+			else if (nu->type == CU_POLY) {
+				len = nu->pntsu;
+//				dl = MEM_callocN(sizeof(DispList), "makeDispListpoly");
+//				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
+//				BLI_addtail(dispbase, dl);
+//				dl->parts = 1;
+//				dl->nr = len;
+//				dl->col = nu->mat_nr;
+//				dl->charidx = nu->charidx;
+
+				data = dl->verts;
+				if ((nu->flagu & CU_NURB_CYCLIC) && (dl->nr != 2)) {
+					dl->type = DL_POLY;
+				}
+				else {
+					dl->type = DL_SEGM;
+				}
+
+				a = len;
+				bp = nu->bp;
+				while (a--) {
+                    points.push_back(bp->vec);
+					bp++;
+					data += 3;
+				}
+			}
+		}
+		nu = nu->next;
+	}
+
+}
+
 /* Hair Curve Sync */
 
 void BlenderSync::sync_curve_settings()

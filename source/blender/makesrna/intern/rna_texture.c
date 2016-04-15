@@ -2014,6 +2014,26 @@ static void rna_def_texture_ocean(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
+static void rna_def_texture_curve(BlenderRNA *brna)
+{
+//    // TODO: TEXCURVE
+//
+//	StructRNA *srna;
+//	PropertyRNA *prop;
+//
+//	srna = RNA_def_struct(brna, "CurveTexData", NULL);
+//	RNA_def_struct_sdna(srna, "CurveTex");
+//	RNA_def_struct_ui_text(srna, "Curve", "Curve Texture settings");
+////	RNA_def_struct_path_func(srna, "rna_CurveTex_path");
+//
+//	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+//	RNA_def_property_pointer_sdna(prop, NULL, "id");
+//	RNA_def_property_struct_type(prop, "Object");
+//	RNA_def_property_flag(prop, PROP_EDITABLE);
+//	RNA_def_property_ui_text(prop, "Object", "Use this curve object for rendering to texture");
+//	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Texture_update");
+}
+
 static void rna_def_texture(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2121,6 +2141,7 @@ static void rna_def_texture(BlenderRNA *brna)
 	rna_def_texture_pointdensity(brna);
 	rna_def_texture_voxeldata(brna);
 	rna_def_texture_ocean(brna);
+	rna_def_texture_curve(brna);
 	/* XXX add more types here .. */
 
 	RNA_api_texture(srna);
