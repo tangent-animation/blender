@@ -3570,7 +3570,9 @@ static void lib_link_texture(FileData *fd, Main *main)
 				tex->vd->object = newlibadr(fd, tex->id.lib, tex->vd->object);
 			if (tex->ot)
 				tex->ot->object = newlibadr(fd, tex->id.lib, tex->ot->object);
-			
+			if (tex->ct)
+				tex->ct->object = newlibadr(fd, tex->id.lib, tex->ct->object);
+
 			if (tex->nodetree) {
 				lib_link_ntree(fd, &tex->id, tex->nodetree);
 				tex->nodetree->id.lib = tex->id.lib;
@@ -3614,7 +3616,9 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	}
 	
 	tex->ot = newdataadr(fd, tex->ot);
-	
+
+	tex->ct = newdataadr(fd, tex->ct);
+
 	tex->nodetree = newdataadr(fd, tex->nodetree);
 	if (tex->nodetree) {
 		direct_link_id(fd, &tex->nodetree->id);

@@ -741,7 +741,8 @@ typedef struct NodeTexBrick {
 
 typedef struct NodeTexCurve {   // TODO: TEXCURVE
 	NodeTexBase base;
-	struct Object *object;
+	void *object;
+//	struct Object *object;
 } NodeTexCurve;
 
 typedef struct NodeTexEnvironment {

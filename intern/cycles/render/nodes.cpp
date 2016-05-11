@@ -367,8 +367,11 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 /* Curve Texture */
 
 CurveTextureNode::CurveTextureNode()
-: TextureNode("curve_texture")
+: ImageSlotTextureNode("curve_texture")
 {
+	image_manager = NULL;
+	slot = -1;
+
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_UV);
 	add_input("FillColor", SHADER_SOCKET_COLOR);
 	add_input("BackgroundColor", SHADER_SOCKET_COLOR);
@@ -409,10 +412,17 @@ void CurveTextureNode::compile(SVMCompiler& compiler)
         tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
     }
 
+    // Build the image
+	image_manager = compiler.image_manager;
+    bool is_float_bool;
+    bool linear;
+    slot = image_manager->add_image(filename, builtin_data,
+                                    true, 0, is_float_bool, linear,
+                                    INTERPOLATION_CLOSEST, true);
 
     compiler.add_node(NODE_TEX_CURVE,
+                slot,
 				compiler.encode_uchar4(vector_offset, fill_color_in->stack_offset, background_color_in->stack_offset, color_out->stack_offset),
-				0,
                 0);
 
     if(vector_offset != vector_in->stack_offset)

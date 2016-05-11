@@ -201,9 +201,9 @@ typedef struct OceanTex {
 	
 } OceanTex;
 
-//typedef struct CurveTex { // TODO: TEXCURVE
-//	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
-//} CurveTex;
+typedef struct CurveTex {   // TODO: TEXCURVE
+	struct Object *object;
+} CurveTex;
 
 typedef struct Tex {
 	ID id;
@@ -260,7 +260,8 @@ typedef struct Tex {
 	struct PointDensity *pd;
 	struct VoxelData *vd;
 	struct OceanTex *ot;
-	
+	struct CurveTex *ct;
+
 	char use_nodes;
 	char pad[7];
 	

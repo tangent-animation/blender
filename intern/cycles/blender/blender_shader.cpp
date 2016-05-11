@@ -33,7 +33,15 @@ typedef map<void*, ShaderInput*> PtrInputMap;
 typedef map<void*, ShaderOutput*> PtrOutputMap;
 typedef map<std::string, ProxyNode*> ProxyMap;
 
-void CurveToFilledTriangles(Curve *cu);
+std::vector<float4> CurveToFilledTriangles(Curve *cu);
+
+/* Hacks to hook into Blender API
+ * todo: clean this up ... */
+
+extern "C" {
+struct Image *BKE_image_add_from_imbuf(struct ImBuf *ibuf, const char *name);
+}
+
 
 /* Find */
 
@@ -610,17 +618,24 @@ static ShaderNode *add_node(Scene *scene,
 		CurveTextureNode *tex = new CurveTextureNode();
 
         if (b_curve) {
-            // ASSERT(b_curve.is_a(&RNA_Curve));
-//            ASSERT(b_curve_node.object().data().is_a(&RNA_Curve));
+            ::Object *ob = (::Object *) b_curve.ptr.data;
+            ::Curve *cu = (::Curve*) ob->data;
 
-            Curve *cu = (Curve *)b_curve.ptr.data;
-            CurveToFilledTriangles(cu);
+            // Build a texture with triangles
+            int scene_frame = b_scene.frame_current();
+            tex->filename = "Curve@" + string_printf("%d", scene_frame);    // TODO: Make more unique??!!
+            tex->points = CurveToFilledTriangles(cu);
 
-//            curve_to_displist(cu, &nubase, dispbase, true, true);
-//
-//            // Do something
-//
-//			BKE_displist_free(&dispbase);
+            ImBuf *ibuf = IMB_allocImBuf(tex->points.size(), 1, 32, IB_rectfloat);
+            ::memcpy(ibuf->rect_float, &(tex->points[0]), tex->points.size() * sizeof(float4));
+            Image *image = BKE_image_add_from_imbuf(ibuf, tex->filename.c_str());
+            IMB_freeImBuf(ibuf);
+
+            tex->builtin_data = image;
+
+            scene->image_manager->tag_reload_image(tex->filename,
+                                                   tex->builtin_data,
+                                                   INTERPOLATION_CLOSEST);
         }
 
 		get_tex_mapping(&tex->tex_mapping, b_curve_node.texture_mapping());

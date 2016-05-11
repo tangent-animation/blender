@@ -21,7 +21,7 @@
 #if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 #  include <unordered_set>
 #else
-#  include <boost/tr1/unordered_set.hpp>
+#  include <tr1/unordered_set>
 #endif
 CCL_NAMESPACE_BEGIN
 

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <carve/triangulator.hpp>
+
 #include "attribute.h"
 #include "camera.h"
 #include "curves.h"
@@ -784,11 +786,22 @@ void ExportCurveTriangleVcol(ParticleCurveData *CData, int vert_offset, int reso
 
 /* Curve to triangles for curve texture */
 
-void CurveToFilledTriangles(Curve *cu) {
+void copy_v3_v3(float r[3], const float a[3])
+{
+	r[0] = a[0];
+	r[1] = a[1];
+	r[2] = a[2];
+}
+
+std::vector<float4> CurveToFilledTriangles(Curve *cu) {
+
+    //
+    // Curve to points
+    //
+
 	Nurb *nu;
 	BezTriple *bezt, *prevbezt;
 	BPoint *bp;
-	float *data;
 	int a, len, resolu;
 
     ListBase *nubase = BKE_curve_nurbs_get(cu);
@@ -828,18 +841,8 @@ void CurveToFilledTriangles(Curve *cu) {
 					bezt++;
 				}
 
-                points.reserve(len + 1);
-
-//				dl = MEM_callocN(sizeof(DispList), "makeDispListbez");
-//				/* len+1 because of 'forward_diff_bezier' function */
-//				dl->verts = MEM_mallocN((len + 1) * sizeof(float[3]), "dlverts");
-//				BLI_addtail(dispbase, dl);
-//				dl->parts = 1;
-//				dl->nr = len;
-//				dl->col = nu->mat_nr;
-//				dl->charidx = nu->charidx;
-//
-//				data = dl->verts;
+                points.resize(len + 1);
+                float *data = (float*) &points[0];
 
 				/* check that (len != 2) so we don't immediately loop back on ourselves */
 				if (nu->flagu & CU_NURB_CYCLIC && (len != 2)) {
@@ -852,11 +855,12 @@ void CurveToFilledTriangles(Curve *cu) {
 				bezt = prevbezt + 1;
 
 				while (a--) {
-					if (a == 0 && dl->type == DL_POLY)
+					if (a == 0)
 						bezt = nu->bezt;
 
 					if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT) {
-                        points.push_back(prevbezt->vec[1])
+						copy_v3_v3(data, prevbezt->vec[1]);
+						data += 3;
 					}
 					else {
 						int j;
@@ -871,8 +875,8 @@ void CurveToFilledTriangles(Curve *cu) {
 						data += 3 * resolu;
 					}
 
-					if (a == 0 && dl->type == DL_SEGM) {
-						points.push_back(bezt->vec[1]);
+					if (a == 0) {
+						copy_v3_v3(data, bezt->vec[1]);
 					}
 
 					prevbezt = bezt;
@@ -881,44 +885,19 @@ void CurveToFilledTriangles(Curve *cu) {
 			}
 			else if (nu->type == CU_NURBS) {
 				len = (resolu * SEGMENTSU(nu));
+                points.resize(len);
 
-//				dl = MEM_callocN(sizeof(DispList), "makeDispListsurf");
-//				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
-//				BLI_addtail(dispbase, dl);
-//				dl->parts = 1;
-//
-//				dl->nr = len;
-//				dl->col = nu->mat_nr;
-//				dl->charidx = nu->charidx;
-
-				data = dl->verts;
-				if (nu->flagu & CU_NURB_CYCLIC)
-					dl->type = DL_POLY;
-				else dl->type = DL_SEGM;
-				BKE_nurb_makeCurve(nu, data, NULL, NULL, NULL, resolu, 3 * sizeof(float));
+				BKE_nurb_makeCurve(nu, (float*) &points[0], NULL, NULL, NULL, resolu, 3 * sizeof(float));
 			}
 			else if (nu->type == CU_POLY) {
 				len = nu->pntsu;
-//				dl = MEM_callocN(sizeof(DispList), "makeDispListpoly");
-//				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
-//				BLI_addtail(dispbase, dl);
-//				dl->parts = 1;
-//				dl->nr = len;
-//				dl->col = nu->mat_nr;
-//				dl->charidx = nu->charidx;
-
-				data = dl->verts;
-				if ((nu->flagu & CU_NURB_CYCLIC) && (dl->nr != 2)) {
-					dl->type = DL_POLY;
-				}
-				else {
-					dl->type = DL_SEGM;
-				}
+                points.reserve(len);
+                float *data = (float*) &points[0];
 
 				a = len;
 				bp = nu->bp;
 				while (a--) {
-                    points.push_back(bp->vec);
+					copy_v3_v3(data, bp->vec);
 					bp++;
 					data += 3;
 				}
@@ -927,6 +906,36 @@ void CurveToFilledTriangles(Curve *cu) {
 		nu = nu->next;
 	}
 
+    //
+    // Triangulate
+    //
+
+    std::vector<carve::triangulate::tri_idx> triangles;
+    std::vector<carve::geom::vector<2> > poly_2d;
+    poly_2d.reserve(points.size());
+
+    // Project points
+    for (auto &p : points) {
+        carve::geom::vector<2> projected_p;
+
+        projected_p.x = p.x;
+        projected_p.y = p.z;
+
+        poly_2d.push_back(projected_p);
+    }
+
+    carve::triangulate::triangulate(poly_2d, triangles);
+    //carve::triangulate::improve(poly_2d, triangles);
+
+    // Convert to points
+    std::vector<float4> tri_points;
+    for (auto &t : triangles) {
+        tri_points.push_back(make_float4(poly_2d[t.a].x, poly_2d[t.a].y, 0.0F, 0.0F));
+        tri_points.push_back(make_float4(poly_2d[t.b].x, poly_2d[t.b].y, 0.0F, 0.0F));
+        tri_points.push_back(make_float4(poly_2d[t.c].x, poly_2d[t.c].y, 0.0F, 0.0F));
+    }
+
+    return tri_points;
 }
 
 /* Hair Curve Sync */

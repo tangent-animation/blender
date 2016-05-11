@@ -23,9 +23,13 @@
 #include "RNA_blender_cpp.h"
 #include "DNA_listBase.h"
 #include "DNA_curve_types.h"
+#include "DNA_object_types.h"
 
 extern "C" {
     #include "BKE_curve.h"
+    #include "BKE_global.h"
+    #include "IMB_imbuf.h"
+    #include "IMB_imbuf_types.h"
 }
 
 #include "blender_util.h"
@@ -37,6 +41,7 @@ extern "C" {
 #include "util_set.h"
 #include "util_transform.h"
 #include "util_vector.h"
+
 
 CCL_NAMESPACE_BEGIN
 

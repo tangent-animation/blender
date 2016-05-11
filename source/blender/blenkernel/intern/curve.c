@@ -4590,3 +4590,5 @@ void BKE_curve_eval_path(EvaluationContext *UNUSED(eval_ctx),
 		printf("%s on %s\n", __func__, curve->id.name);
 	}
 }
+
+

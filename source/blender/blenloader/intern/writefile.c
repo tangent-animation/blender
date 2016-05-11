@@ -2210,7 +2210,8 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 			if (tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
-			if (tex->type == TEX_ENVMAP && tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
+			if (tex->type == TEX_ENVMAP && tex->env)
+                writestruct(wd, DATA, "EnvMap", 1, tex->env);
 			if (tex->type == TEX_POINTDENSITY && tex->pd) {
 				writestruct(wd, DATA, "PointDensity", 1, tex->pd);
 				if (tex->pd->coba) writestruct(wd, DATA, "ColorBand", 1, tex->pd->coba);
@@ -2218,7 +2219,9 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			}
 			if (tex->type == TEX_VOXELDATA) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
 			if (tex->type == TEX_OCEAN && tex->ot) writestruct(wd, DATA, "OceanTex", 1, tex->ot);
-			
+			if (tex->type == TEX_CURVE && tex->ct)
+                writestruct(wd, DATA, "CurveTex", 1, tex->ct);  // TODO: TEXCURVE
+
 			/* nodetree is integral part of texture, no libdata */
 			if (tex->nodetree) {
 				writestruct(wd, DATA, "bNodeTree", 1, tex->nodetree);
