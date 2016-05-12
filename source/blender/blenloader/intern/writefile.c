@@ -884,7 +884,13 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			else if (ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION) {
 				/* pass */
 			}
-			else
+//			else if (node->type==SH_NODE_TEX_CURVE) {
+//                // TODO: TEXCURVE
+//				NodeTexCurve *ntc = (NodeTexCurve*)node->storage;
+////                writestruct(wd, DATA, "Object", 1, ntc->object);
+//                writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+//			}
+            else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}
 		
@@ -2219,8 +2225,6 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			}
 			if (tex->type == TEX_VOXELDATA) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
 			if (tex->type == TEX_OCEAN && tex->ot) writestruct(wd, DATA, "OceanTex", 1, tex->ot);
-			if (tex->type == TEX_CURVE && tex->ct)
-                writestruct(wd, DATA, "CurveTex", 1, tex->ct);  // TODO: TEXCURVE
 
 			/* nodetree is integral part of texture, no libdata */
 			if (tex->nodetree) {

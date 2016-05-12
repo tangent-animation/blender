@@ -564,7 +564,6 @@ void BKE_texture_free(Tex *tex)
 	if (tex->pd) BKE_texture_pointdensity_free(tex->pd);
 	if (tex->vd) BKE_texture_voxeldata_free(tex->vd);
 	if (tex->ot) BKE_texture_ocean_free(tex->ot);
-	if (tex->ct) BKE_texture_curve_free(tex->ct);
 	BKE_animdata_free((struct ID *)tex);
 	
 	BKE_previewimg_free(&tex->preview);
@@ -649,7 +648,7 @@ void BKE_texture_default(Tex *tex)
 		tex->ot->output = TEX_OCN_DISPLACEMENT;
 		tex->ot->object = NULL;
 	}
-	
+
 	tex->iuser.fie_ima = 2;
 	tex->iuser.ok = 1;
 	tex->iuser.frames = 100;
@@ -677,10 +676,6 @@ void BKE_texture_type_set(Tex *tex, int type)
 		case TEX_OCEAN:
 			if (tex->ot == NULL)
 				tex->ot = BKE_texture_ocean_add();
-			break;
-		case TEX_CURVE:
-			if (tex->ct == NULL)
-				tex->ct = BKE_texture_curve_add();
 			break;
 	}
 	
@@ -849,7 +844,6 @@ Tex *BKE_texture_copy(Tex *tex)
 	if (texn->pd) texn->pd = BKE_texture_pointdensity_copy(texn->pd);
 	if (texn->vd) texn->vd = MEM_dupallocN(texn->vd);
 	if (texn->ot) texn->ot = BKE_texture_ocean_copy(texn->ot);
-	if (texn->ct) texn->ct = BKE_texture_curve_copy(texn->ct);
 	if (tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
 	if (tex->nodetree) {
@@ -888,9 +882,6 @@ Tex *BKE_texture_localize(Tex *tex)
 	}
 	if (texn->ot) {
 		texn->ot = BKE_texture_ocean_copy(tex->ot);
-	}
-	if (texn->ct) {
-		texn->ct = BKE_texture_curve_copy(tex->ct);
 	}
 
 	texn->preview = NULL;
@@ -1613,30 +1604,6 @@ OceanTex *BKE_texture_ocean_copy(struct OceanTex *ot)
 }
 
 void BKE_texture_ocean_free(struct OceanTex *ot)
-{
-	MEM_freeN(ot);
-}
-
-/* ------------------------------------------------------------------------- */
-
-CurveTex *BKE_texture_curve_add(void)
-{
-	CurveTex *ct;
-	
-	ct = MEM_callocN(sizeof(struct CurveTex), "curve texture");
-	ct->object = NULL;
-	
-	return ct;
-}
-
-CurveTex *BKE_texture_curve_copy(struct CurveTex *oc)
-{
-	CurveTex *ocn = MEM_dupallocN(oc);
-	
-	return ocn;
-}
-
-void BKE_texture_curve_free(struct CurveTex *ot)
 {
 	MEM_freeN(ot);
 }

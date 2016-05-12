@@ -201,10 +201,6 @@ typedef struct OceanTex {
 	
 } OceanTex;
 
-typedef struct CurveTex {   // TODO: TEXCURVE
-	struct Object *object;
-} CurveTex;
-
 typedef struct Tex {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -260,7 +256,6 @@ typedef struct Tex {
 	struct PointDensity *pd;
 	struct VoxelData *vd;
 	struct OceanTex *ot;
-	struct CurveTex *ct;
 
 	char use_nodes;
 	char pad[7];

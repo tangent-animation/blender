@@ -47,7 +47,6 @@ struct Main;
 struct Material;
 struct MTex;
 struct OceanTex;
-struct CurveTex;
 struct ParticleSettings;
 struct PointDensity;
 struct Tex;
@@ -129,10 +128,6 @@ struct VoxelData *BKE_texture_voxeldata_copy(struct VoxelData *vd);
 void             BKE_texture_ocean_free(struct OceanTex *ot);
 struct OceanTex *BKE_texture_ocean_add(void);
 struct OceanTex *BKE_texture_ocean_copy(struct OceanTex *ot);
-
-void             BKE_texture_curve_free(struct CurveTex *ct);
-struct CurveTex *BKE_texture_curve_add(void);
-struct CurveTex *BKE_texture_curve_copy(struct CurveTex *ct);
 
 bool    BKE_texture_dependsOnTime(const struct Tex *texture);
 bool    BKE_texture_is_image_user(const struct Tex *tex);

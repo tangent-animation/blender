@@ -2805,6 +2805,13 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 					NodeShaderScript *nss = (NodeShaderScript *) node->storage;
 					nss->bytecode = newdataadr(fd, nss->bytecode);
 				}
+                else if (node->type == SH_NODE_TEX_CURVE) {
+                    // TODO: TEXCURVE
+                    NodeTexCurve *ntc = (NodeTexCurve*)node->storage;
+                    printf("ADDR = %lld", (long long) ntc->object );
+
+                    ntc->object = newdataadr(fd, ntc->object);
+                }
 			}
 			else if (ntree->type==NTREE_COMPOSIT) {
 				if (ELEM(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
@@ -2818,6 +2825,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 				else if (node->type==TEX_NODE_IMAGE)
 					((ImageUser *)node->storage)->ok = 1;
 			}
+
 		}
 	}
 	link_list(fd, &ntree->links);
@@ -3570,8 +3578,6 @@ static void lib_link_texture(FileData *fd, Main *main)
 				tex->vd->object = newlibadr(fd, tex->id.lib, tex->vd->object);
 			if (tex->ot)
 				tex->ot->object = newlibadr(fd, tex->id.lib, tex->ot->object);
-			if (tex->ct)
-				tex->ct->object = newlibadr(fd, tex->id.lib, tex->ct->object);
 
 			if (tex->nodetree) {
 				lib_link_ntree(fd, &tex->id, tex->nodetree);
@@ -3616,8 +3622,6 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	}
 	
 	tex->ot = newdataadr(fd, tex->ot);
-
-	tex->ct = newdataadr(fd, tex->ct);
 
 	tex->nodetree = newdataadr(fd, tex->nodetree);
 	if (tex->nodetree) {
@@ -7529,7 +7533,7 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 	
 	while (bhead && bhead->code==DATA) {
 		void *data;
-#if 0
+#if 1
 		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
 		short *sp = fd->filesdna->structs[bhead->SDNAnr];
 		char *tmp = malloc(100);
@@ -7539,7 +7543,9 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 #else
 		data = read_struct(fd, bhead, allocname);
 #endif
-		
+
+        printf("%s %lld\n",allocname, (long long) data);
+
 		if (data) {
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
 		}
