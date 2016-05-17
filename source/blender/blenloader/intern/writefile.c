@@ -887,7 +887,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 //			else if (node->type==SH_NODE_TEX_CURVE) {
 //                // TODO: TEXCURVE
 //				NodeTexCurve *ntc = (NodeTexCurve*)node->storage;
-////                writestruct(wd, DATA, "Object", 1, ntc->object);
+//                writestruct(wd, DATA, "Curve", 1, ntc->object);
 //                writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 //			}
             else

@@ -2808,9 +2808,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
                 else if (node->type == SH_NODE_TEX_CURVE) {
                     // TODO: TEXCURVE
                     NodeTexCurve *ntc = (NodeTexCurve*)node->storage;
-                    printf("ADDR = %lld", (long long) ntc->object );
-
-                    ntc->object = newdataadr(fd, ntc->object);
+                    ntc->object = newlibadr(fd, ntree->id.lib, ntc->object);
                 }
 			}
 			else if (ntree->type==NTREE_COMPOSIT) {
@@ -7543,8 +7541,6 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 #else
 		data = read_struct(fd, bhead, allocname);
 #endif
-
-        printf("%s %lld\n",allocname, (long long) data);
 
 		if (data) {
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
