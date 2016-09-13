@@ -47,6 +47,7 @@ public:
 	int map_resolution;
 
     unsigned int light_linking, light_linking_prev;
+    unsigned int light_buffer; // TODO AOV
 
 	float spot_angle;
 	float spot_smooth;

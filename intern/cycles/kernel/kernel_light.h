@@ -30,6 +30,7 @@ typedef struct LightSample {
 	int prim;			/* primitive id for triangle/curve lights */
 	int shader;			/* shader id */
 	int lamp;			/* lamp id */
+    int light_buffer;   /* buffer index */
 	LightType type;		/* type of light */
 } LightSample;
 
@@ -533,6 +534,7 @@ ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 	ls->object = PRIM_NONE;
 	ls->prim = PRIM_NONE;
 	ls->lamp = lamp;
+    ls->light_buffer = light_to_buffer_index(kg, lamp);
 	ls->u = randu;
 	ls->v = randv;
 
@@ -631,6 +633,8 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 	ls->object = PRIM_NONE;
 	ls->prim = PRIM_NONE;
 	ls->lamp = lamp;
+    ls->light_buffer = light_to_buffer_index(kg, lamp);
+
 	/* todo: missing texture coordinates */
 	ls->u = 0.0f;
 	ls->v = 0.0f;
@@ -782,6 +786,7 @@ ccl_device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	ls->prim = prim;
 	ls->lamp = LAMP_NONE;
 	ls->shader |= SHADER_USE_MIS;
+    ls->light_buffer = object_to_buffer_index(kg, object);
 	ls->t = 0.0f;
 	ls->u = u;
 	ls->v = v;
@@ -867,6 +872,7 @@ ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float 
 		ls->D = normalize_len(ls->P - P, &ls->t);
 		ls->pdf = triangle_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 		ls->shader |= shader_flag;
+        ls->light_buffer = object_to_buffer_index(kg, object);
 	}
 	else {
 		int lamp = -prim-1;

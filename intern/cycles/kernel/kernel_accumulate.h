@@ -130,53 +130,150 @@ ccl_device_inline void bsdf_eval_mul(BsdfEval *eval, float3 value)
 
 ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 {
+#ifdef __PASSES__
+    L->use_light_pass = use_light_pass;
+    L->ao = make_float3(0.0f, 0.0f, 0.0f);
+    L->mist = 0.0f;
+
+	/* clear all */
+    for (int i = 0; i < MAX_NUM_LIGHT_BUFFERS; ++i) {
+        if(use_light_pass) {
+            PathRadianceBuffer *b = &(L->buffers[i]);
+
+            b->background = make_float3(0.0f, 0.0f, 0.0f);
+
+            b->emission = make_float3(0.0f, 0.0f, 0.0f);
+            b->indirect = make_float3(0.0f, 0.0f, 0.0f);
+            b->direct_throughput = make_float3(0.0f, 0.0f, 0.0f);
+            b->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
+
+            b->color_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+            b->color_glossy = make_float3(0.0f, 0.0f, 0.0f);
+            b->color_transmission = make_float3(0.0f, 0.0f, 0.0f);
+            b->color_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+            b->color_scatter = make_float3(0.0f, 0.0f, 0.0f);
+
+            b->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+            b->direct_glossy = make_float3(0.0f, 0.0f, 0.0f);
+            b->direct_transmission = make_float3(0.0f, 0.0f, 0.0f);
+            b->direct_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+            b->direct_scatter = make_float3(0.0f, 0.0f, 0.0f);
+
+            b->indirect_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+            b->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
+            b->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
+            b->indirect_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+            b->indirect_scatter = make_float3(0.0f, 0.0f, 0.0f);
+
+            b->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+            b->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
+            b->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
+            b->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+            b->path_scatter = make_float3(0.0f, 0.0f, 0.0f);
+
+            b->shadow = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+        } else {
+            PathRadianceBuffer *b = &(L->buffers[i]);
+            b->emission = make_float3(0.0f, 0.0f, 0.0f);
+        }
+    }
+#else
+    *L = make_float3(0.0f, 0.0f, 0.0f);
+#endif
+
+}
+
+ccl_device_inline void path_radiance_init(PathRadianceAccum *L, int use_light_pass)
+{
 	/* clear all */
 #ifdef __PASSES__
-	L->use_light_pass = use_light_pass;
+    L->use_light_pass = use_light_pass;
+    L->background = make_float3(0.0f, 0.0f, 0.0f);
+    L->ao = make_float3(0.0f, 0.0f, 0.0f);
+    L->mist = 0.0f;
 
-	if(use_light_pass) {
-		L->indirect = make_float3(0.0f, 0.0f, 0.0f);
-		L->direct_throughput = make_float3(0.0f, 0.0f, 0.0f);
-		L->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
+    if(use_light_pass) {
+        L->emission = make_float3(0.0f, 0.0f, 0.0f);
+        L->indirect = make_float3(0.0f, 0.0f, 0.0f);
+        L->direct_throughput = make_float3(0.0f, 0.0f, 0.0f);
+        L->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
 
-		L->color_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-		L->color_glossy = make_float3(0.0f, 0.0f, 0.0f);
-		L->color_transmission = make_float3(0.0f, 0.0f, 0.0f);
-		L->color_subsurface = make_float3(0.0f, 0.0f, 0.0f);
-		L->color_scatter = make_float3(0.0f, 0.0f, 0.0f);
+        L->color_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+        L->color_glossy = make_float3(0.0f, 0.0f, 0.0f);
+        L->color_transmission = make_float3(0.0f, 0.0f, 0.0f);
+        L->color_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+        L->color_scatter = make_float3(0.0f, 0.0f, 0.0f);
 
-		L->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-		L->direct_glossy = make_float3(0.0f, 0.0f, 0.0f);
-		L->direct_transmission = make_float3(0.0f, 0.0f, 0.0f);
-		L->direct_subsurface = make_float3(0.0f, 0.0f, 0.0f);
-		L->direct_scatter = make_float3(0.0f, 0.0f, 0.0f);
+        L->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+        L->direct_glossy = make_float3(0.0f, 0.0f, 0.0f);
+        L->direct_transmission = make_float3(0.0f, 0.0f, 0.0f);
+        L->direct_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+        L->direct_scatter = make_float3(0.0f, 0.0f, 0.0f);
 
-		L->indirect_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-		L->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
-		L->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
-		L->indirect_subsurface = make_float3(0.0f, 0.0f, 0.0f);
-		L->indirect_scatter = make_float3(0.0f, 0.0f, 0.0f);
+        L->indirect_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+        L->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
+        L->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
+        L->indirect_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+        L->indirect_scatter = make_float3(0.0f, 0.0f, 0.0f);
 
-		L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_scatter = make_float3(0.0f, 0.0f, 0.0f);
+        L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+        L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
+        L->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
+        L->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+        L->path_scatter = make_float3(0.0f, 0.0f, 0.0f);
 
-		L->emission = make_float3(0.0f, 0.0f, 0.0f);
-		L->background = make_float3(0.0f, 0.0f, 0.0f);
-		L->ao = make_float3(0.0f, 0.0f, 0.0f);
-		L->shadow = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-		L->mist = 0.0f;
-	}
-	else
-		L->emission = make_float3(0.0f, 0.0f, 0.0f);
+        L->shadow = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    } else {
+        L->emission = make_float3(0.0f, 0.0f, 0.0f);
+    }
 #else
-	*L = make_float3(0.0f, 0.0f, 0.0f);
+    *L = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 }
 
-ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, ccl_addr_space float3 *throughput,
+ccl_device_inline void path_radiance_accum_buffers(PathRadiance *L, PathRadianceAccum *Laccum)
+{
+    Laccum->ao += L->ao;
+    Laccum->mist += L->mist;
+
+    for (int i = 0; i < MAX_NUM_LIGHT_BUFFERS; ++i) {
+        Laccum->background += L->buffers[i].background;
+
+        Laccum->emission += L->buffers[i].emission;
+        Laccum->indirect += L->buffers[i].indirect;
+        Laccum->direct_throughput += L->buffers[i].direct_throughput;
+        Laccum->direct_emission += L->buffers[i].direct_emission;
+
+        Laccum->color_diffuse += L->buffers[i].color_diffuse;
+        Laccum->color_glossy += L->buffers[i].color_glossy;
+        Laccum->color_transmission += L->buffers[i].color_transmission;
+        Laccum->color_subsurface += L->buffers[i].color_subsurface;
+        Laccum->color_scatter += L->buffers[i].color_scatter;
+
+        Laccum->direct_diffuse += L->buffers[i].direct_diffuse;
+        Laccum->direct_glossy += L->buffers[i].direct_glossy;
+        Laccum->direct_transmission += L->buffers[i].direct_transmission;
+        Laccum->direct_subsurface += L->buffers[i].direct_subsurface;
+        Laccum->direct_scatter += L->buffers[i].direct_scatter;
+
+        Laccum->indirect_diffuse += L->buffers[i].indirect_diffuse;
+        Laccum->indirect_glossy += L->buffers[i].indirect_glossy;
+        Laccum->indirect_transmission += L->buffers[i].indirect_transmission;
+        Laccum->indirect_subsurface += L->buffers[i].indirect_subsurface;
+        Laccum->indirect_scatter += L->buffers[i].indirect_scatter;
+
+        Laccum->path_diffuse += L->buffers[i].path_diffuse;
+        Laccum->path_glossy += L->buffers[i].path_glossy;
+        Laccum->path_transmission += L->buffers[i].path_transmission;
+        Laccum->path_subsurface += L->buffers[i].path_subsurface;
+        Laccum->path_scatter += L->buffers[i].path_scatter;
+
+        Laccum->shadow += L->buffers[i].shadow;
+    }
+
+}
+
+ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, int nL, ccl_addr_space float3 *throughput,
 	BsdfEval *bsdf_eval, float bsdf_pdf, int bounce, int bsdf_label)
 {
 	float inverse_pdf = 1.0f/bsdf_pdf;
@@ -186,16 +283,17 @@ ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, ccl_addr_space
 		if(bounce == 0 && !(bsdf_label & LABEL_TRANSPARENT)) {
 			/* first on directly visible surface */
 			float3 value = *throughput*inverse_pdf;
+            PathRadianceBuffer *b = &(L->buffers[nL]);
 
-			L->path_diffuse = bsdf_eval->diffuse*value;
-			L->path_glossy = bsdf_eval->glossy*value;
-			L->path_transmission = bsdf_eval->transmission*value;
-			L->path_subsurface = bsdf_eval->subsurface*value;
-			L->path_scatter = bsdf_eval->scatter*value;
+			b->path_diffuse = bsdf_eval->diffuse*value;
+			b->path_glossy = bsdf_eval->glossy*value;
+			b->path_transmission = bsdf_eval->transmission*value;
+			b->path_subsurface = bsdf_eval->subsurface*value;
+			b->path_scatter = bsdf_eval->scatter*value;
 
-			*throughput = L->path_diffuse + L->path_glossy + L->path_transmission + L->path_subsurface + L->path_scatter;
+			*throughput = b->path_diffuse + b->path_glossy + b->path_transmission + b->path_subsurface + b->path_scatter;
 			
-			L->direct_throughput = *throughput;
+			b->direct_throughput = *throughput;
 		}
 		else {
 			/* transparent bounce before first hit, or indirectly visible through BSDF */
@@ -211,95 +309,141 @@ ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, ccl_addr_space
 #endif
 }
 
-ccl_device_inline void path_radiance_accum_emission(PathRadiance *L, float3 throughput, float3 value, int bounce)
+ccl_device_inline void path_radiance_accum_emission(PathRadiance *L, float3 throughput, float3 emission[MAX_NUM_LIGHT_BUFFERS], int bounce)
+{
+    for (int i = 0; i < MAX_NUM_LIGHT_BUFFERS; ++i) {
+#ifdef __PASSES__
+        if(L->use_light_pass) {
+            if(bounce == 0)
+                L->buffers[i].emission += throughput*emission[i];
+            else if(bounce == 1)
+                L->buffers[i].direct_emission += throughput*emission[i];
+            else
+                L->buffers[i].indirect += throughput*emission[i];
+        }
+        else
+            L->buffers[i].emission += throughput*emission[i];
+#else
+        L->buffers[i] += throughput*emission[i];
+#endif
+    }
+}
+
+ccl_device_inline void path_radiance_accum_emission(PathRadiance *L, int nL, float3 throughput, float3 emission, int bounce)
 {
 #ifdef __PASSES__
-	if(L->use_light_pass) {
-		if(bounce == 0)
-			L->emission += throughput*value;
-		else if(bounce == 1)
-			L->direct_emission += throughput*value;
-		else
-			L->indirect += throughput*value;
-	}
-	else
-		L->emission += throughput*value;
+    if(L->use_light_pass) {
+        if(bounce == 0)
+            L->buffers[nL].emission += throughput*emission;
+        else if(bounce == 1)
+            L->buffers[nL].direct_emission += throughput*emission;
+        else
+            L->buffers[nL].indirect += throughput*emission;
+    }
+    else
+        L->buffers[nL].emission += throughput*emission;
 #else
-	*L += throughput*value;
+    *L += throughput*emission;
 #endif
 }
 
-ccl_device_inline void path_radiance_accum_ao(PathRadiance *L, float3 throughput, float3 alpha, float3 bsdf, float3 ao, int bounce)
+ccl_device_inline void path_radiance_accum_ao(PathRadiance *L, int nL, float3 throughput, float3 alpha, float3 bsdf, float3 ao, int bounce)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
 		if(bounce == 0) {
 			/* directly visible lighting */
-			L->direct_diffuse += throughput*bsdf*ao;
+			L->buffers[nL].direct_diffuse += throughput*bsdf*ao;
 			L->ao += alpha*throughput*ao;
 		}
 		else {
 			/* indirectly visible lighting after BSDF bounce */
-			L->indirect += throughput*bsdf*ao;
+			L->buffers[nL].indirect += throughput*bsdf*ao;
 		}
 	}
 	else
-		L->emission += throughput*bsdf*ao;
+		L->buffers[nL].emission += throughput*bsdf*ao;
 #else
-	*L += throughput*bsdf*ao;
+	L->buffers[nL] += throughput*bsdf*ao;
 #endif
 }
 
-ccl_device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughput, BsdfEval *bsdf_eval, float3 shadow, float shadow_fac, int bounce, bool is_lamp)
+ccl_device_inline void path_radiance_accum_light(PathRadiance *L, int nL, float3 throughput, BsdfEval *bsdf_eval, float3 shadow, float shadow_fac, int bounce, bool is_lamp)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
 		if(bounce == 0) {
 			/* directly visible lighting */
-			L->direct_diffuse += throughput*bsdf_eval->diffuse*shadow;
-			L->direct_glossy += throughput*bsdf_eval->glossy*shadow;
-			L->direct_transmission += throughput*bsdf_eval->transmission*shadow;
-			L->direct_subsurface += throughput*bsdf_eval->subsurface*shadow;
-			L->direct_scatter += throughput*bsdf_eval->scatter*shadow;
+			L->buffers[nL].direct_diffuse += throughput*bsdf_eval->diffuse*shadow;
+			L->buffers[nL].direct_glossy += throughput*bsdf_eval->glossy*shadow;
+			L->buffers[nL].direct_transmission += throughput*bsdf_eval->transmission*shadow;
+			L->buffers[nL].direct_subsurface += throughput*bsdf_eval->subsurface*shadow;
+			L->buffers[nL].direct_scatter += throughput*bsdf_eval->scatter*shadow;
 
 			if(is_lamp) {
-				L->shadow.x += shadow.x*shadow_fac;
-				L->shadow.y += shadow.y*shadow_fac;
-				L->shadow.z += shadow.z*shadow_fac;
+				L->buffers[nL].shadow.x += shadow.x*shadow_fac;
+				L->buffers[nL].shadow.y += shadow.y*shadow_fac;
+				L->buffers[nL].shadow.z += shadow.z*shadow_fac;
 			}
 		}
 		else {
 			/* indirectly visible lighting after BSDF bounce */
 			float3 sum = bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission + bsdf_eval->subsurface + bsdf_eval->scatter;
-			L->indirect += throughput*sum*shadow;
+			L->buffers[nL].indirect += throughput*sum*shadow;
 		}
 	}
 	else
-		L->emission += throughput*bsdf_eval->diffuse*shadow;
+		L->buffers[nL].emission += throughput*bsdf_eval->diffuse*shadow;
 #else
-	*L += throughput*(*bsdf_eval)*shadow;
+	L[nL] += throughput*(*bsdf_eval)*shadow;
 #endif
 }
 
-ccl_device_inline void path_radiance_accum_background(PathRadiance *L, float3 throughput, float3 value, int bounce)
+ccl_device_inline void path_radiance_accum_background(PathRadiance *L, int nL, float3 throughput, float3 value, int bounce)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
 		if(bounce == 0)
-			L->background += throughput*value;
+			L->buffers[nL].background += throughput*value;
 		else if(bounce == 1)
-			L->direct_emission += throughput*value;
+			L->buffers[nL].direct_emission += throughput*value;
 		else
-			L->indirect += throughput*value;
+			L->buffers[nL].indirect += throughput*value;
 	}
 	else
-		L->emission += throughput*value;
+		L->buffers[nL].emission += throughput*value;
 #else
-	*L += throughput*value;
+	L[nL] += throughput*value;
 #endif
 }
 
-ccl_device_inline void path_radiance_sum_indirect(PathRadiance *L)
+ccl_device_inline void path_radiance_sum_indirect(PathRadiance *L, int nL)
+{
+#ifdef __PASSES__
+	/* this division is a bit ugly, but means we only have to keep track of
+	 * only a single throughput further along the path, here we recover just
+	 * the indirect path that is not influenced by any particular BSDF type */
+	if(L->use_light_pass) {
+        PathRadianceBuffer *b = &(L->buffers[nL]);
+
+		b->direct_emission = safe_divide_color(b->direct_emission, b->direct_throughput);
+		b->direct_diffuse += b->path_diffuse*b->direct_emission;
+		b->direct_glossy += b->path_glossy*b->direct_emission;
+		b->direct_transmission += b->path_transmission*b->direct_emission;
+		b->direct_subsurface += b->path_subsurface*b->direct_emission;
+		b->direct_scatter += b->path_scatter*b->direct_emission;
+
+		b->indirect = safe_divide_color(b->indirect, b->direct_throughput);
+		b->indirect_diffuse += b->path_diffuse*b->indirect;
+		b->indirect_glossy += b->path_glossy*b->indirect;
+		b->indirect_transmission += b->path_transmission*b->indirect;
+		b->indirect_subsurface += b->path_subsurface*b->indirect;
+		b->indirect_scatter += b->path_scatter*b->indirect;
+	}
+#endif
+}
+
+ccl_device_inline void path_radiance_sum_indirect(PathRadianceAccum *L)
 {
 #ifdef __PASSES__
 	/* this division is a bit ugly, but means we only have to keep track of
@@ -323,23 +467,25 @@ ccl_device_inline void path_radiance_sum_indirect(PathRadiance *L)
 #endif
 }
 
-ccl_device_inline void path_radiance_reset_indirect(PathRadiance *L)
+ccl_device_inline void path_radiance_reset_indirect(PathRadiance *L, int nL)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
-		L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_scatter = make_float3(0.0f, 0.0f, 0.0f);
+        PathRadianceBuffer *b = &(L->buffers[nL]);
 
-		L->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
-		L->indirect = make_float3(0.0f, 0.0f, 0.0f);
+		b->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+		b->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
+		b->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
+		b->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+		b->path_scatter = make_float3(0.0f, 0.0f, 0.0f);
+
+		b->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
+		b->indirect = make_float3(0.0f, 0.0f, 0.0f);
 	}
 #endif
 }
 
-ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadiance *L)
+ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadianceAccum *L)
 {
 	float3 L_sum;
 	/* Light Passes are used */
@@ -434,27 +580,31 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 	return L_sum;
 }
 
-ccl_device_inline void path_radiance_accum_sample(PathRadiance *L, PathRadiance *L_sample, int num_samples)
+ccl_device_inline void path_radiance_accum_sample(PathRadiance *L, PathRadiance *L_sample, int nL, int num_samples)
 {
 	float fac = 1.0f/num_samples;
 
 #ifdef __PASSES__
-	L->direct_diffuse += L_sample->direct_diffuse*fac;
-	L->direct_glossy += L_sample->direct_glossy*fac;
-	L->direct_transmission += L_sample->direct_transmission*fac;
-	L->direct_subsurface += L_sample->direct_subsurface*fac;
-	L->direct_scatter += L_sample->direct_scatter*fac;
+    PathRadianceBuffer *b = &(L->buffers[nL]);
+    PathRadianceBuffer *b_sample = &(L_sample->buffers[nL]);
 
-	L->indirect_diffuse += L_sample->indirect_diffuse*fac;
-	L->indirect_glossy += L_sample->indirect_glossy*fac;
-	L->indirect_transmission += L_sample->indirect_transmission*fac;
-	L->indirect_subsurface += L_sample->indirect_subsurface*fac;
-	L->indirect_scatter += L_sample->indirect_scatter*fac;
+	b->direct_diffuse += b_sample->direct_diffuse*fac;
+	b->direct_glossy += b_sample->direct_glossy*fac;
+	b->direct_transmission += b_sample->direct_transmission*fac;
+	b->direct_subsurface += b_sample->direct_subsurface*fac;
+	b->direct_scatter += b_sample->direct_scatter*fac;
 
-	L->emission += L_sample->emission*fac;
-	L->background += L_sample->background*fac;
+	b->indirect_diffuse += b_sample->indirect_diffuse*fac;
+	b->indirect_glossy += b_sample->indirect_glossy*fac;
+	b->indirect_transmission += b_sample->indirect_transmission*fac;
+	b->indirect_subsurface += b_sample->indirect_subsurface*fac;
+	b->indirect_scatter += b_sample->indirect_scatter*fac;
+
+	b->emission += b_sample->emission*fac;
+	b->shadow += b_sample->shadow*fac;
+	b->background += b_sample->background*fac;
+
 	L->ao += L_sample->ao*fac;
-	L->shadow += L_sample->shadow*fac;
 	L->mist += L_sample->mist*fac;
 #else
 	*L += *L_sample * fac;

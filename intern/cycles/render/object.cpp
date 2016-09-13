@@ -53,6 +53,7 @@ Object::Object()
 	dupli_uv = make_float2(0.0f, 0.0f);
     light_linking = 0;
     light_linking_prev = 0;
+    light_buffer = 0;
 }
 
 Object::~Object()
@@ -356,7 +357,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 
 		objects[offset+9] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], __int_as_float(numkeys));
 		objects[offset+10] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], __int_as_float(numsteps), __int_as_float(numverts));
-		objects[offset+11] = make_float4(__uint_as_float(ob->light_linking), 0.0f, 0.0f, 0.0f);
+		objects[offset+11] = make_float4(__uint_as_float(ob->light_linking), __uint_as_float(ob->light_buffer), 0.0f, 0.0f);
 
 		/* object flag */
 		if(ob->use_holdout)

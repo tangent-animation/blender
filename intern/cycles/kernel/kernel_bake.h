@@ -42,6 +42,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 	shader_eval_surface(kg, sd, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
 
     unsigned int light_linking = object_light_linking(kg, sd->object);
+    int bn = object_to_buffer_index(kg, sd->object);
 
 	/* TODO, disable the closures we won't need */
 
@@ -69,7 +70,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 			if(sd->flag & SD_EMISSION) {
 				float3 emission = indirect_primitive_emission(kg, sd, 0.0f, state.flag, state.ray_pdf);
-				path_radiance_accum_emission(&L_sample, throughput, emission, state.bounce);
+				path_radiance_accum_emission(&L_sample, bn, throughput, emission, state.bounce);
 			}
 
 			kernel_path_surface_connect_light(kg, &rng, sd, throughput, &state, &L_sample, light_linking);
@@ -82,8 +83,8 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 				kernel_path_indirect(kg, &rng, ray, throughput, 1, state, &L_sample);
 
 				/* sum and reset indirect light pass variables for the next samples */
-				path_radiance_sum_indirect(&L_sample);
-				path_radiance_reset_indirect(&L_sample);
+				path_radiance_sum_indirect(&L_sample, bn);
+				path_radiance_reset_indirect(&L_sample, bn);
 			}
 		}
 #ifdef __BRANCHED_PATH__
@@ -100,7 +101,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 		/* sample subsurface scattering */
 		if((is_combined || is_sss_sample) && (sd->flag & SD_BSSRDF)) {
 			/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
-			kernel_branched_path_subsurface_scatter(kg, sd, &L_sample, &state, &rng, &ray, throughput);
+			kernel_branched_path_subsurface_scatter(kg, sd, &L_sample, bn, &state, &rng, &ray, throughput);
 		}
 #endif
 
@@ -109,7 +110,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 			if(sd->flag & SD_EMISSION) {
 				float3 emission = indirect_primitive_emission(kg, sd, 0.0f, state.flag, state.ray_pdf);
-				path_radiance_accum_emission(&L_sample, throughput, emission, state.bounce);
+				path_radiance_accum_emission(&L_sample, bn, throughput, emission, state.bounce);
 			}
 
 #if defined(__EMISSION__)
@@ -129,7 +130,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 #endif
 
 	/* accumulate into master L */
-	path_radiance_accum_sample(L, &L_sample, 1);
+	path_radiance_accum_sample(L, &L_sample, bn, 1);
 }
 
 ccl_device bool is_aa_pass(ShaderEvalType type)
@@ -257,6 +258,10 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		                   sample);
 	}
 
+    PathRadianceAccum Laccum;
+    path_radiance_init(&Laccum, kernel_data.film.use_light_pass);
+    path_radiance_accum_buffers(&L, &Laccum);
+
 	switch (type) {
 		/* data passes */
 		case SHADER_EVAL_NORMAL:
@@ -316,63 +321,63 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		}
 		case SHADER_EVAL_COMBINED:
 		{
-			out = path_radiance_clamp_and_sum(kg, &L);
+			out = path_radiance_clamp_and_sum(kg, &Laccum);
 			break;
 		}
 		case SHADER_EVAL_SHADOW:
 		{
-			out = make_float3(L.shadow.x, L.shadow.y, L.shadow.z);
+			out = make_float3(Laccum.shadow.x, Laccum.shadow.y, Laccum.shadow.z);
 			break;
 		}
 		case SHADER_EVAL_DIFFUSE_DIRECT:
 		{
 			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
-			out = safe_divide_color(L.direct_diffuse, shader_bsdf_diffuse(kg, &sd));
+			out = safe_divide_color(Laccum.direct_diffuse, shader_bsdf_diffuse(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_GLOSSY_DIRECT:
 		{
 			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
-			out = safe_divide_color(L.direct_glossy, shader_bsdf_glossy(kg, &sd));
+			out = safe_divide_color(Laccum.direct_glossy, shader_bsdf_glossy(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_TRANSMISSION_DIRECT:
 		{
 			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
-			out = safe_divide_color(L.direct_transmission, shader_bsdf_transmission(kg, &sd));
+			out = safe_divide_color(Laccum.direct_transmission, shader_bsdf_transmission(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_SUBSURFACE_DIRECT:
 		{
 #ifdef __SUBSURFACE__
 			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
-			out = safe_divide_color(L.direct_subsurface, shader_bsdf_subsurface(kg, &sd));
+			out = safe_divide_color(Laccum.direct_subsurface, shader_bsdf_subsurface(kg, &sd));
 #endif
 			break;
 		}
 		case SHADER_EVAL_DIFFUSE_INDIRECT:
 		{
 			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
-			out = safe_divide_color(L.indirect_diffuse, shader_bsdf_diffuse(kg, &sd));
+			out = safe_divide_color(Laccum.indirect_diffuse, shader_bsdf_diffuse(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_GLOSSY_INDIRECT:
 		{
 			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
-			out = safe_divide_color(L.indirect_glossy, shader_bsdf_glossy(kg, &sd));
+			out = safe_divide_color(Laccum.indirect_glossy, shader_bsdf_glossy(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_TRANSMISSION_INDIRECT:
 		{
 			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
-			out = safe_divide_color(L.indirect_transmission, shader_bsdf_transmission(kg, &sd));
+			out = safe_divide_color(Laccum.indirect_transmission, shader_bsdf_transmission(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_SUBSURFACE_INDIRECT:
 		{
 #ifdef __SUBSURFACE__
 			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
-			out = safe_divide_color(L.indirect_subsurface, shader_bsdf_subsurface(kg, &sd));
+			out = safe_divide_color(Laccum.indirect_subsurface, shader_bsdf_subsurface(kg, &sd));
 #endif
 			break;
 		}

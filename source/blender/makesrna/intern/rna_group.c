@@ -148,6 +148,10 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Light Linking", "Light Linking");
 	RNA_def_property_update(prop, 0, "rna_Group_update");
 
+	prop = RNA_def_property(srna, "light_buffer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Light Buffer", "Light Buffer");
+	RNA_def_property_update(prop, 0, "rna_Group_update");
+
 	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
 	RNA_def_property_struct_type(prop, "Object");

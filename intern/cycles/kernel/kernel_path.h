@@ -76,9 +76,9 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 			light_ray.dP = ray.dP;
 
 			/* intersect with lamp */
-			float3 emission;
+			float3 emission[MAX_NUM_LIGHT_BUFFERS];
 
-			if(indirect_lamp_emission(kg, &state, &light_ray, &emission))
+			if(indirect_lamp_emission(kg, &state, &light_ray, emission))
 				path_radiance_accum_emission(L, throughput, emission, state.bounce);
 		}
 #endif
@@ -110,7 +110,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 
 				/* emission */
 				if(volume_segment.closure_flag & SD_EMISSION)
-					path_radiance_accum_emission(L, throughput, volume_segment.accum_emission, state.bounce);
+					path_radiance_accum_emission(L, object_to_buffer_index(kg, volume_sd.object), throughput, volume_segment.accum_emission, state.bounce);
 
 				/* scattering */
 				VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
@@ -176,7 +176,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 #ifdef __BACKGROUND__
 			/* sample background shader */
 			float3 L_background = indirect_background(kg, &state, &ray);
-			path_radiance_accum_background(L, throughput, L_background, state.bounce);
+			path_radiance_accum_background(L, BUFFER_BACKGROUND, throughput, L_background, state.bounce);
 #endif
 
 			break;
@@ -208,7 +208,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 		/* emission */
 		if(sd.flag & SD_EMISSION) {
 			float3 emission = indirect_primitive_emission(kg, &sd, isect.t, state.flag, state.ray_pdf);
-			path_radiance_accum_emission(L, throughput, emission, state.bounce);
+			path_radiance_accum_emission(L, object_to_buffer_index(kg, sd.object), throughput, emission, state.bounce);
 		}
 #endif
 
@@ -264,7 +264,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 				state.flag |= PATH_RAY_AO;
 
 				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow, &sd)) {
-					path_radiance_accum_ao(L, throughput, ao_alpha, ao_bsdf * ao_env, ao_shadow, state.bounce);
+					path_radiance_accum_ao(L, BUFFER_AO, throughput, ao_alpha, ao_bsdf * ao_env, ao_shadow, state.bounce);
                 }
 
                 state.flag &= ~PATH_RAY_AO;
@@ -341,7 +341,7 @@ ccl_device void kernel_path_ao(KernelGlobals *kg, ShaderData *sd, PathRadiance *
         state->flag |= PATH_RAY_AO;
 
 		if(!shadow_blocked(kg, state, &light_ray, &ao_shadow, sd)) {
-			path_radiance_accum_ao(L, throughput, ao_alpha, ao_bsdf * ao_env, ao_shadow, state->bounce);
+			path_radiance_accum_ao(L, BUFFER_AO, throughput, ao_alpha, ao_bsdf * ao_env, ao_shadow, state->bounce);
         }
 
         state->flag &= ~PATH_RAY_AO;
@@ -410,8 +410,9 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 
 				/* for render passes, sum and reset indirect light pass variables
 				 * for the next samples */
-				path_radiance_sum_indirect(L);
-				path_radiance_reset_indirect(L);
+                int bn = object_to_buffer_index(kg, bssrdf_sd[hit].object);
+				path_radiance_sum_indirect(L, bn);
+				path_radiance_reset_indirect(L, bn);
 			}
 		}
 		return true;
@@ -485,9 +486,9 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			light_ray.dP = ray.dP;
 
 			/* intersect with lamp */
-			float3 emission;
+			float3 emission[MAX_NUM_LIGHT_BUFFERS];
 
-			if(indirect_lamp_emission(kg, &state, &light_ray, &emission))
+			if(indirect_lamp_emission(kg, &state, &light_ray, emission))
 				path_radiance_accum_emission(&L, throughput, emission, state.bounce);
 		}
 #endif
@@ -519,7 +520,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 				/* emission */
 				if(volume_segment.closure_flag & SD_EMISSION)
-					path_radiance_accum_emission(&L, throughput, volume_segment.accum_emission, state.bounce);
+					path_radiance_accum_emission(&L, object_to_buffer_index(kg, volume_sd.object), throughput, volume_segment.accum_emission, state.bounce);
 
 				/* scattering */
 				VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
@@ -595,7 +596,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 #ifdef __BACKGROUND__
 			/* sample background shader */
 			float3 L_background = indirect_background(kg, &state, &ray);
-			path_radiance_accum_background(&L, throughput, L_background, state.bounce);
+			path_radiance_accum_background(&L, BUFFER_BACKGROUND, throughput, L_background, state.bounce);
 #endif
 
 			break;
@@ -629,8 +630,12 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 		}
 #endif
 
+        PathRadianceAccum Laccum;
+        path_radiance_init(&Laccum, kernel_data.film.use_light_pass);
+        path_radiance_accum_buffers(&L, &Laccum);
+
 		/* holdout mask objects do not write data passes */
-		kernel_write_data_passes(kg, buffer, &L, &sd, sample, &state, throughput);
+		kernel_write_data_passes(kg, buffer, &Laccum, &sd, sample, &state, throughput);
 
 		/* blurring of bsdf after bounces, for rays that have a small likelihood
 		 * of following this particular path (diffuse, rough glossy) */
@@ -648,7 +653,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 		if(sd.flag & SD_EMISSION) {
 			/* todo: is isect.t wrong here for transparent surfaces? */
 			float3 emission = indirect_primitive_emission(kg, &sd, isect.t, state.flag, state.ray_pdf);
-			path_radiance_accum_emission(&L, throughput, emission, state.bounce);
+			path_radiance_accum_emission(&L, object_to_buffer_index(kg, sd.object), throughput, emission, state.bounce);
 		}
 #endif
 
@@ -693,9 +698,12 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			break;
 	}
 
-	float3 L_sum = path_radiance_clamp_and_sum(kg, &L);
+    PathRadianceAccum Laccum;
+	path_radiance_init(&Laccum, kernel_data.film.use_light_pass);
+    path_radiance_accum_buffers(&L, &Laccum);
 
-	kernel_write_light_passes(kg, buffer, &L, sample);
+	float3 L_sum = path_radiance_clamp_and_sum(kg, &Laccum);
+	kernel_write_light_passes(kg, buffer, &Laccum, sample);
 
 #ifdef __KERNEL_DEBUG__
 	kernel_write_debug_passes(kg, buffer, &state, &debug_data, sample);

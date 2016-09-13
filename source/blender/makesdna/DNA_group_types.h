@@ -67,7 +67,7 @@ typedef struct Group {
 	unsigned int layer;
 	float dupli_ofs[3];
     unsigned int light_linking;
-	char pad[4];
+    unsigned int light_buffer;
 } Group;
 
 #endif  /* __DNA_GROUP_TYPES_H__ */

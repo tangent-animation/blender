@@ -56,7 +56,7 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathR
         	state->flag |= PATH_RAY_AO;
 
 			if(!shadow_blocked(kg, state, &light_ray, &ao_shadow, sd)) {
-				path_radiance_accum_ao(L, throughput*num_samples_inv, ao_alpha, ao_bsdf * ao_env, ao_shadow, state->bounce);
+				path_radiance_accum_ao(L, BUFFER_AO, throughput*num_samples_inv, ao_alpha, ao_bsdf * ao_env, ao_shadow, state->bounce);
             }
 
             state->flag &= ~PATH_RAY_AO;
@@ -69,7 +69,7 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathR
 /* bounce off surface and integrate indirect light */
 ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGlobals *kg,
 	RNG *rng, ShaderData *sd, float3 throughput, float num_samples_adjust,
-	PathState *state, PathRadiance *L)
+	PathState *state, PathRadiance L[])
 {
 	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		const ShaderClosure *sc = &ccl_fetch(sd, closure)[i];
@@ -108,8 +108,9 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 
 			/* for render passes, sum and reset indirect light pass variables
 			 * for the next samples */
-			path_radiance_sum_indirect(L);
-			path_radiance_reset_indirect(L);
+            int bn = object_to_buffer_index(kg, sd->object);
+			path_radiance_sum_indirect(L, bn);
+			path_radiance_reset_indirect(L, bn);
 		}
 	}
 }
@@ -118,6 +119,7 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
                                                         ShaderData *sd,
                                                         PathRadiance *L,
+                                                        int nL,
                                                         PathState *state,
                                                         RNG *rng,
                                                         Ray *ray,
@@ -308,15 +310,16 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 						/* for render passes, sum and reset indirect light pass variables
 						 * for the next samples */
-						path_radiance_sum_indirect(&L);
-						path_radiance_reset_indirect(&L);
+                        int bn = object_to_buffer_index(kg, volume_sd.object);
+						path_radiance_sum_indirect(&L,bn);
+						path_radiance_reset_indirect(&L,bn);
 					}
 				}
 			}
 
 			/* emission and transmittance */
 			if(volume_segment.closure_flag & SD_EMISSION)
-				path_radiance_accum_emission(&L, throughput, volume_segment.accum_emission, state.bounce);
+				path_radiance_accum_emission(&L, volume_sd.object, throughput, volume_segment.accum_emission, state.bounce);
 			throughput *= volume_segment.accum_transmittance;
 
 			/* free cached steps */
@@ -379,7 +382,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #ifdef __BACKGROUND__
 			/* sample background shader */
 			float3 L_background = indirect_background(kg, &state, &ray);
-			path_radiance_accum_background(&L, throughput, L_background, state.bounce);
+			path_radiance_accum_background(&L, BUFFER_BACKGROUND, throughput, L_background, state.bounce);
 #endif
 
 			break;
@@ -414,14 +417,18 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 		}
 #endif
 
+        PathRadianceAccum Laccum;
+        path_radiance_init(&Laccum, kernel_data.film.use_light_pass);
+        path_radiance_accum_buffers(&L, &Laccum);
+
 		/* holdout mask objects do not write data passes */
-		kernel_write_data_passes(kg, buffer, &L, &sd, sample, &state, throughput);
+		kernel_write_data_passes(kg, buffer, &Laccum, &sd, sample, &state, throughput);
 
 #ifdef __EMISSION__
 		/* emission */
 		if(sd.flag & SD_EMISSION) {
 			float3 emission = indirect_primitive_emission(kg, &sd, isect.t, state.flag, state.ray_pdf);
-			path_radiance_accum_emission(&L, throughput, emission, state.bounce);
+			path_radiance_accum_emission(&L, object_to_buffer_index(kg, sd.object), throughput, emission, state.bounce);
 		}
 #endif
 
@@ -455,7 +462,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #ifdef __SUBSURFACE__
 		/* bssrdf scatter to a different location on the same object */
 		if(sd.flag & SD_BSSRDF) {
-			kernel_branched_path_subsurface_scatter(kg, &sd, &L, &state,
+			kernel_branched_path_subsurface_scatter(kg, &sd, &L, object_to_buffer_index(kg, sd.object), &state,
 			                                        rng, &ray, throughput);
 		}
 #endif
@@ -503,9 +510,13 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #endif
 	}
 
-	float3 L_sum = path_radiance_clamp_and_sum(kg, &L);
+    // TODO AOV
+    PathRadianceAccum Laccum;
+    path_radiance_init(&Laccum, kernel_data.film.use_light_pass);
+    path_radiance_accum_buffers(&L, &Laccum);
 
-	kernel_write_light_passes(kg, buffer, &L, sample);
+	float3 L_sum = path_radiance_clamp_and_sum(kg, &Laccum);
+	kernel_write_light_passes(kg, buffer, &Laccum, sample);
 
 #ifdef __KERNEL_DEBUG__
 	kernel_write_debug_passes(kg, buffer, &state, &debug_data, sample);

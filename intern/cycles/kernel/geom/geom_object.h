@@ -215,6 +215,26 @@ ccl_device_inline float object_surface_area(KernelGlobals *kg, int object)
 	return f.x;
 }
 
+/* Buffer index */
+
+ccl_device bool light_to_buffer_index(KernelGlobals *kg, int index)
+{
+	float4 data4 = kernel_tex_fetch(__light_data, index*LIGHT_SIZE + 4);
+	unsigned int buffer_index = __float_as_uint(data4.z);
+    return buffer_index;
+}
+
+ccl_device_inline int object_to_buffer_index(KernelGlobals *kg, int object)
+{
+	if(object == OBJECT_NONE)
+		return 0;
+
+	int offset = object*OBJECT_SIZE + OBJECT_LIGHT_LINKING;
+	float4 f = kernel_tex_fetch(__objects, offset);
+	return __float_as_uint(f.y);
+}
+
+
 /* Light Linking bitmask of object */
 
 ccl_device_inline unsigned int object_light_linking(KernelGlobals *kg, int object)

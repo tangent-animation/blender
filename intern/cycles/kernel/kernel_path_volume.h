@@ -50,7 +50,7 @@ ccl_device void kernel_path_volume_connect_light(KernelGlobals *kg, RNG *rng,
 
 		if(!shadow_blocked(kg, state, &light_ray, &shadow, sd)) {
 			/* accumulate */
-			path_radiance_accum_light(L, throughput, &L_light, shadow, 1.0f, state->bounce, is_lamp);
+			path_radiance_accum_light(L, ls.light_buffer, throughput, &L_light, shadow, 1.0f, state->bounce, is_lamp);
 		}
 	}
 #endif
@@ -80,7 +80,7 @@ bool kernel_path_volume_bounce(KernelGlobals *kg, RNG *rng,
 		return false;
 	
 	/* modify throughput */
-	path_radiance_bsdf_bounce(L, throughput, &phase_eval, phase_pdf, state->bounce, label);
+	path_radiance_bsdf_bounce(L, object_to_buffer_index(kg, sd->object), throughput, &phase_eval, phase_pdf, state->bounce, label);
 
 	/* set labels */
 	state->ray_pdf = phase_pdf;
@@ -169,7 +169,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 
 					if(!shadow_blocked(kg, state, &light_ray, &shadow, sd)) {
 						/* accumulate */
-						path_radiance_accum_light(L, tp*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
+						path_radiance_accum_light(L, ls.light_buffer, tp*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
 					}
 				}
 			}
@@ -220,7 +220,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 
 					if(!shadow_blocked(kg, state, &light_ray, &shadow, sd)) {
 						/* accumulate */
-						path_radiance_accum_light(L, tp*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
+						path_radiance_accum_light(L, ls.light_buffer, tp*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
 					}
 				}
 			}
@@ -260,7 +260,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 
 			if(!shadow_blocked(kg, state, &light_ray, &shadow, sd)) {
 				/* accumulate */
-				path_radiance_accum_light(L, tp, &L_light, shadow, 1.0f, state->bounce, is_lamp);
+				path_radiance_accum_light(L, ls.light_buffer, tp, &L_light, shadow, 1.0f, state->bounce, is_lamp);
 			}
 		}
 	}

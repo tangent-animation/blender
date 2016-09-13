@@ -207,6 +207,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
                     
                     col3 = split.column()
                     col3.prop(group, "light_linking", text="Light Linking")
+                    col3.prop(group, "light_buffer", text="Light Buffer")
 
 
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):

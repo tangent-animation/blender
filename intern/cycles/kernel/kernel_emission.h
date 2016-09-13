@@ -191,7 +191,7 @@ ccl_device_noinline float3 indirect_primitive_emission(KernelGlobals *kg, Shader
 
 /* Indirect Lamp Emission */
 
-ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *state, Ray *ray, float3 *emission
+ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *state, Ray *ray, float3 emission[MAX_NUM_LIGHT_BUFFERS]
 #ifdef __SPLIT_KERNEL__
                                                 ,ShaderData *sd
 #endif
@@ -199,7 +199,9 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *st
 {
 	bool hit_lamp = false;
 
-	*emission = make_float3(0.0f, 0.0f, 0.0f);
+    for (int e = 0; e < MAX_NUM_LIGHT_BUFFERS; ++e) {
+        emission[e] = make_float3(0.0f, 0.0f, 0.0f);
+    }
 
 	for(int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
 		LightSample ls;
@@ -245,7 +247,7 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *st
 			L *= mis_weight;
 		}
 
-		*emission += L;
+		emission[ls.light_buffer] += L;
 		hit_lamp = true;
 	}
 

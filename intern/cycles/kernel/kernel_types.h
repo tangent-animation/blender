@@ -347,16 +347,14 @@ typedef enum PassType {
 } PassType;
 
 #define PASS_ALL (~0)
+#define MAX_NUM_LIGHT_BUFFERS 32
 
 #ifdef __PASSES__
 
-typedef ccl_addr_space struct PathRadiance {
-	int use_light_pass;
+typedef ccl_addr_space struct PathRadianceBuffer {
+	float3 background;
 
 	float3 emission;
-	float3 background;
-	float3 ao;
-
 	float3 indirect;
 	float3 direct_throughput;
 	float3 direct_emission;
@@ -386,8 +384,55 @@ typedef ccl_addr_space struct PathRadiance {
 	float3 path_scatter;
 
 	float4 shadow;
+} PathRadianceBuffer;
+
+typedef ccl_addr_space struct PathRadiance {
+	int use_light_pass;
+
+	float3 ao;
 	float mist;
+
+    PathRadianceBuffer buffers[MAX_NUM_LIGHT_BUFFERS];
 } PathRadiance;
+
+typedef ccl_addr_space struct PathRadianceAccum {
+	int use_light_pass;
+
+	float3 background;
+	float3 ao;
+	float mist;
+
+	float3 emission;
+	float3 indirect;
+	float3 direct_throughput;
+	float3 direct_emission;
+
+	float3 color_diffuse;
+	float3 color_glossy;
+	float3 color_transmission;
+	float3 color_subsurface;
+	float3 color_scatter;
+
+	float3 direct_diffuse;
+	float3 direct_glossy;
+	float3 direct_transmission;
+	float3 direct_subsurface;
+	float3 direct_scatter;
+
+	float3 indirect_diffuse;
+	float3 indirect_glossy;
+	float3 indirect_transmission;
+	float3 indirect_subsurface;
+	float3 indirect_scatter;
+
+	float3 path_diffuse;
+	float3 path_glossy;
+	float3 path_transmission;
+	float3 path_subsurface;
+	float3 path_scatter;
+
+	float4 shadow;
+} PathRadianceAccum;
 
 typedef struct BsdfEval {
 	int use_light_pass;
@@ -406,6 +451,14 @@ typedef ccl_addr_space float3 PathRadiance;
 typedef float3 BsdfEval;
 
 #endif
+
+typedef enum Buffers {
+    BUFFER_DEFAULT = 0,
+    BUFFER_BACKGROUND = 1,
+    BUFFER_AO = 2,
+    BUFFER_CUSTOM = 3
+} Buffers;
+
 
 /* Shader Flag */
 

@@ -558,6 +558,75 @@ void BlenderSync::sync_light_linking()
 
 }
 
+/* Light Buffers */
+
+void BlenderSync::sync_light_buffers()
+{
+
+    // Initialize all object light linking flags
+    foreach(Object *ob, scene->objects) {
+        ob->light_buffer = 0;
+    }
+    foreach(Light *li, scene->lights) {
+        li->light_buffer = 0;
+    }
+
+	int dupli_settings = preview ? 1 : 2;
+    int bi = BUFFER_CUSTOM;
+
+    BL::BlendData::groups_iterator b_gr;
+    for(b_data.groups.begin(b_gr); b_gr != b_data.groups.end(); ++b_gr) {
+        unsigned int light_buffer = b_gr->light_buffer();   // True or false
+        if (!light_buffer)
+            continue;
+
+        BL::Group::objects_iterator b_ob;
+
+        for(b_gr->objects.begin(b_ob); b_ob != b_gr->objects.end(); ++b_ob) {
+
+            /* Do Dupli groups first */
+            if (b_ob->is_duplicator()) {
+                b_ob->dupli_list_create(b_scene, dupli_settings);
+
+                BL::Object::dupli_list_iterator b_dup;
+                for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
+                    BL::Object b_dup_ob = b_dup->object();
+                    BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_dup->persistent_id();
+
+                    ObjectKey key(*b_ob, persistent_id, b_dup_ob);
+
+                    Object *object = object_map.find(key);
+                    if (object) {
+                        object->light_buffer = bi;
+                    }
+
+                    Light *light = light_map.find(key);
+                    if (light) {
+                        light->light_buffer = bi;
+                    }
+                }
+            }
+
+            /* Now regular objects */
+            ObjectKey key(*b_ob, NULL, *b_ob);
+
+            Object *object = object_map.find(key);
+            if (object) {
+                object->light_buffer = bi;
+            }
+
+            Light *light = light_map.find(key);
+            if (light) {
+                light->light_buffer = bi;
+            }
+        }
+
+        ++bi;
+        if (bi > 31)
+            break;
+    }
+}
+
 /* Object Loop */
 
 void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, float motion_time)

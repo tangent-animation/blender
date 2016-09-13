@@ -75,6 +75,7 @@ private:
 	void sync_lamps(bool update_all);
 	void sync_materials(bool update_all);
     void sync_light_linking();
+    void sync_light_buffers();
 	void sync_objects(BL::SpaceView3D b_v3d, float motion_time = 0.0f);
 	void sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override, void **python_thread_state);
 	void sync_film();

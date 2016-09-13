@@ -64,7 +64,7 @@ ccl_device void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RN
 
 					if(!shadow_blocked(kg, state, &light_ray, &shadow, sd)) {
 						/* accumulate */
-						path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
+						path_radiance_accum_light(L, ls.light_buffer, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
 					}
 				}
 			}
@@ -96,7 +96,7 @@ ccl_device void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RN
 
 					if(!shadow_blocked(kg, state, &light_ray, &shadow, sd)) {
 						/* accumulate */
-						path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
+						path_radiance_accum_light(L, ls.light_buffer, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
 					}
 				}
 			}
@@ -118,7 +118,7 @@ ccl_device void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RN
 
 			if(!shadow_blocked(kg, state, &light_ray, &shadow, sd)) {
 				/* accumulate */
-				path_radiance_accum_light(L, throughput*num_samples_adjust, &L_light, shadow, num_samples_adjust, state->bounce, is_lamp);
+				path_radiance_accum_light(L, ls.light_buffer, throughput*num_samples_adjust, &L_light, shadow, num_samples_adjust, state->bounce, is_lamp);
 			}
 		}
 	}
@@ -146,7 +146,7 @@ ccl_device bool kernel_branched_path_surface_bounce(KernelGlobals *kg, RNG *rng,
 		return false;
 
 	/* modify throughput */
-	path_radiance_bsdf_bounce(L, throughput, &bsdf_eval, bsdf_pdf, state->bounce, label);
+	path_radiance_bsdf_bounce(L, object_to_buffer_index(kg, sd->object), throughput, &bsdf_eval, bsdf_pdf, state->bounce, label);
 
 	/* modify path state */
 	path_state_next(kg, state, label);
@@ -215,7 +215,7 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_
 
 		if(!shadow_blocked(kg, state, &light_ray, &shadow, sd)) {
 			/* accumulate */
-			path_radiance_accum_light(L, throughput, &L_light, shadow, 1.0f, state->bounce, is_lamp);
+			path_radiance_accum_light(L, ls.light_buffer, throughput, &L_light, shadow, 1.0f, state->bounce, is_lamp);
 		}
 	}
 #endif
@@ -244,7 +244,7 @@ ccl_device_inline bool kernel_path_surface_bounce(KernelGlobals *kg, ccl_addr_sp
 			return false;
 
 		/* modify throughput */
-		path_radiance_bsdf_bounce(L, throughput, &bsdf_eval, bsdf_pdf, state->bounce, label);
+		path_radiance_bsdf_bounce(L, object_to_buffer_index(kg, sd->object), throughput, &bsdf_eval, bsdf_pdf, state->bounce, label);
 
 		/* set labels */
 		if(!(label & LABEL_TRANSPARENT)) {
